@@ -2,6 +2,3 @@ streamlit
 pandas
 altair
 requests
-stix2
-networkx
-validators
