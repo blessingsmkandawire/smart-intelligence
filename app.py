@@ -34,8 +34,8 @@ st.sidebar.markdown("<h2 style='color: #38bdf8; text-align: center; border-botto
 
 LANGUAGES = {
     "English": {
-        "welcome": "Welcome to Smart Intelligence",
-        "tagline": "Automated Cyber Threat Intelligence Parsing, Correlation, and Mitigation Engine",
+        "welcome": "Smart Intelligence CTI",
+        "tagline": "Enterprise Automated Threat Intelligence, Correlation, and Mitigation Platform",
         "l1": "Layer 1: Scope & Target Definition",
         "l2": "Layer 2: Multi-Source Data Ingestion Modules",
         "l3": "Layer 3: Extraction & Normalization Engine",
@@ -51,14 +51,14 @@ LANGUAGES = {
         "ttps_mapped": "TTPs Mapped"
     },
     "Français (French)": {
-        "welcome": "Bienvenue sur Smart Intelligence",
-        "tagline": "Moteur d'analyse, de corrélation et d'atténuation des cybermenaces",
+        "welcome": "Smart Intelligence CTI",
+        "tagline": "Plateforme automatisée de renseignement, corrélation et atténuation des cybermenaces",
         "l1": "Couche 1: Définition du Périmètre et de la Cible",
         "l2": "Couche 2: Modules d'Ingestion de Données Multi-Sources",
         "l3": "Couche 3: Moteur d'Extraction et de Normalisation",
         "l4": "Couche 4: Moteur de Corrélation et d'Atténuation IA",
         "l5": "Couche 5: Livrables et Tableau de Bord Opérationnel",
-        "btn_process": "⚡ EXÉCUTER LE SERPENTIN D'INTELLIGENCE À 5 COUCHES",
+        "btn_process": "⚡ EXÉCUTER LE PIPELINE D'INTELLIGENCE À 5 COUCHES",
         "target": "Entité Cible / Secteur",
         "timeframe": "Période d'Intelligence",
         "goal": "Objectif d'Intelligence",
@@ -86,41 +86,41 @@ if st.sidebar.button("❌ Hide Control Panel"):
     st.session_state.sidebar_state = "collapsed"
     st.rerun()
 
-# Dynamic Theme & Advanced Glassmorphism Styling with Complex Background (CSS)
+# Dynamic Theme & Futuristic Cyber-SOC UI Styling (CSS)
 if theme_choice == "Cyberpunk Neon Mode":
     bg_color_solid = "#030208"
-    bg_gradient = "radial-gradient(circle at 50% 20%, #0d0a1a 0%, #030208 100%)"
-    card_bg = "rgba(15, 15, 27, 0.8)"
+    bg_gradient = "radial-gradient(circle at 50% 20%, #150a2b 0%, #030208 100%)"
+    card_bg = "rgba(18, 15, 36, 0.85)"
     text_color = "#00ffcc"
     accent_color = "#ff0055"
-    border_color = "rgba(0, 255, 204, 0.3)"
+    border_color = "rgba(0, 255, 204, 0.4)"
+    glow_shadow = "0 0 20px rgba(255, 0, 85, 0.25)"
 elif theme_choice == "Clean Light Mode":
-    bg_color_solid = "#e2e8f0"
-    bg_gradient = "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)"
-    card_bg = "rgba(255, 255, 255, 0.9)"
+    bg_color_solid = "#f1f5f9"
+    bg_gradient = "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)"
+    card_bg = "rgba(255, 255, 255, 0.95)"
     text_color = "#0f172a"
     accent_color = "#2563eb"
-    border_color = "rgba(37, 99, 235, 0.2)"
-else:  # Dark SOC Theme
-    bg_color_solid = "#070a12"
-    bg_gradient = "radial-gradient(circle at 50% 10%, #0d172a 0%, #070a12 100%)"
-    card_bg = "rgba(22, 30, 46, 0.82)"
+    border_color = "rgba(37, 99, 235, 0.25)"
+    glow_shadow = "0 8px 25px rgba(37, 99, 235, 0.15)"
+else:  # Dark SOC Theme (Default)
+    bg_color_solid = "#050814"
+    bg_gradient = "radial-gradient(circle at 50% 10%, #0c1b33 0%, #050814 100%)"
+    card_bg = "rgba(16, 24, 40, 0.88)"
     text_color = "#f1f5f9"
     accent_color = "#38bdf8"
-    border_color = "rgba(56, 189, 248, 0.25)"
+    border_color = "rgba(56, 189, 248, 0.3)"
+    glow_shadow = "0 8px 30px rgba(56, 189, 248, 0.2)"
 
-# ADVANCED BACKGROUND DEFINITION (Scrolling Immersive Grid)
 symbols = "🛡️ 🔒 🔑 ☣️ 👨‍💻 👁️ 🌐 📡 🛰️ 📱"
 st.markdown(f"""
     <style>
-    /* 1. Full Page Immersive Fixed Background */
+    /* 1. Immersive Background */
     .stApp {{
         background-color: {bg_color_solid};
         background-image: {bg_gradient};
         background-attachment: fixed;
     }}
-    
-    /* 2. Scrolling Transparent Cybersecurity Grid Overlay */
     .stApp::before {{
         content: '{symbols * 15}';
         position: fixed;
@@ -129,101 +129,133 @@ st.markdown(f"""
         display: grid;
         grid-template-columns: repeat(15, 1fr);
         grid-template-rows: repeat(15, 1fr);
-        font-size: 20px;
-        color: white; /* Base color before opacity */
-        opacity: 0.04; /* Highly transparent */
+        font-size: 22px;
+        opacity: 0.035;
         justify-items: center; align-items: center;
         overflow: hidden;
-        pointer-events: none; /* User can't click symbols */
-        z-index: 0; /* Behind everything */
-        letter-spacing: 15px;
+        pointer-events: none;
+        z-index: 0;
+        letter-spacing: 18px;
         line-height: 2;
     }}
-    
-    /* 3. High-Visibility Sidebar Styling */
+
+    /* 2. Sleek Sidebar */
     section[data-testid="stSidebar"] {{
-        background: #091122 !important;
+        background: #080e1e !important;
         border-right: 1px solid #1e293b !important;
-        box-shadow: 5px 0px 20px rgba(0, 0, 0, 0.6);
-        z-index: 100; /* In front of bg grid */
+        box-shadow: 6px 0px 25px rgba(0, 0, 0, 0.7);
+        z-index: 100;
     }}
     section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span {{
         color: #f1f5f9 !important;
         font-weight: 600 !important;
     }}
 
-    /* Global Typography */
+    /* 3. Typography & Headers */
     html, body, p, span, div, label, .stMarkdown, .stText {{
         color: {text_color} !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }}
-    h1, h2, h3, h4 {{ color: {text_color} !important; font-weight: 700 !important; tracking: -0.02em; }}
-    h1 {{ color: {accent_color} !important; }}
+    h1, h2, h3, h4 {{ color: {text_color} !important; font-weight: 700 !important; letter-spacing: -0.01em; }}
+    h1 {{ color: {accent_color} !important; text-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }}
 
-    /* Glassmorphism Dynamic Metric Cards */
+    /* 4. Futuristic Glassmorphism Cards & Metrics */
     div[data-testid="stMetric"] {{
         background: {card_bg};
-        backdrop-filter: blur(14px) saturate(180%);
-        -webkit-backdrop-filter: blur(14px) saturate(180%);
+        backdrop-filter: blur(16px) saturate(200%);
+        -webkit-backdrop-filter: blur(16px) saturate(200%);
         border: 1px solid {border_color};
-        border-top: 2px solid {accent_color};
+        border-top: 3px solid {accent_color};
         border-radius: 14px;
-        padding: 16px 20px;
-        box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.25);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        padding: 18px 22px;
+        box-shadow: {glow_shadow};
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }}
     div[data-testid="stMetric"]:hover {{
-        transform: translateY(-3px);
-        box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.4);
+        transform: translateY(-5px);
+        box-shadow: 0 12px 35px rgba(56, 189, 248, 0.35);
     }}
     div[data-testid="stMetricValue"] > div {{
         color: {accent_color} !important;
-        font-size: 1.9rem !important;
+        font-size: 2.1rem !important;
         font-weight: 800 !important;
     }}
 
-    /* Input Controls & Textareas */
+    /* 5. Inputs & Textareas */
     textarea, input {{
         color: {text_color} !important;
         background-color: {card_bg} !important;
         border: 1px solid {border_color} !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
     }}
     textarea:focus, input:focus {{
         border-color: {accent_color} !important;
-        box-shadow: 0 0 10px {border_color} !important;
+        box-shadow: 0 0 15px {border_color} !important;
     }}
 
-    /* Buttons Styling */
+    /* 6. Glowing Action Buttons */
     .stButton>button {{
         width: 100%;
         font-weight: 700;
-        font-size: 1.1rem;
+        font-size: 1.15rem;
         background: linear-gradient(135deg, {accent_color} 0%, #0284c7 100%) !important;
         color: #ffffff !important;
         border: none !important;
-        border-radius: 8px;
-        padding: 0.75rem 1.25rem;
-        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
-        transition: all 0.2s ease;
+        border-radius: 10px;
+        padding: 0.8rem 1.4rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        transition: all 0.25s ease;
+        letter-spacing: 0.03em;
     }}
     .stButton>button:hover {{
-        opacity: 0.92;
-        transform: scale(1.01);
+        opacity: 0.95;
+        transform: scale(1.02);
+        box-shadow: 0 6px 25px {border_color};
     }}
 
-    /* Main Container Padding to clear fixed elements */
-    .stApp > div {{
-        padding-bottom: 80px;
+    /* 7. Containers & Expanders */
+    .stExpander {{
+        background: {card_bg} !important;
+        border: 1px solid {border_color} !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }}
 
-    /* Developer Footer */
+    /* 8. Pulse Live Indicator */
+    .live-hud-badge {{
+        display: inline-flex;
+        align-items: center;
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #34d399;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }}
+    .live-hud-dot {{
+        height: 8px; width: 8px;
+        background-color: #34d399;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        box-shadow: 0 0 10px #34d399;
+        animation: pulse-animation 2s infinite;
+    }}
+    @keyframes pulse-animation {{
+        0% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }}
+        70% {{ transform: scale(1); box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }}
+        100% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
+    }}
+
+    .stApp > div {{ padding-bottom: 90px; }}
     .developer-footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
-        background-color: #050811; color: #64748b !important;
+        background-color: #03050c; color: #64748b !important;
         text-align: center; padding: 10px; font-size: 0.85rem !important;
         border-top: 1px solid #1e293b; z-index: 999;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.08em;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -276,11 +308,11 @@ def generate_yara_rule(target_entity, iocs):
 def answer_gemini_help(user_prompt):
     prompt_lower = user_prompt.lower()
     if "how" in prompt_lower or "use" in prompt_lower or "guide" in prompt_lower:
-        return "💡 **Smart Intelligence Usage Guide:**\n1. Fill in **Layer 1** (Target & Scope).\n2. Paste logs or threat reports into **Layer 2** tabs.\n3. Click **`⚡ EXECUTE 5-LAYER INTELLIGENCE PIPELINE`**.\n4. View results in **Layer 5** and copy playbooks or download STIX/YARA/Executive briefings."
+        return "💡 **Smart Intelligence Usage Guide:**\n1. Fill in **Layer 1** (Target & Scope).\n2. Paste logs or threat reports into **Layer 2** tabs.\n3. Click **`⚡ EXECUTE 5-LAYER INTELLIGENCE PIPELINE`**.\n4. View interactive results in **Layer 5** with expandable SOC cards and downloadable deliverables."
     elif "layer" in prompt_lower or "5 layer" in prompt_lower:
-        return "🛡️ **5-Layer Architecture Breakdown:**\n- **Layer 1:** Target Scope & Objectives\n- **Layer 2:** Multi-Source Telemetry Ingestion\n- **Layer 3:** Extraction & Normalization (IoCs/TTPs)\n- **Layer 4:** AI Threat Correlation & Fight-Back Playbooks\n- **Layer 5:** Visual Dashboard & C-Suite Deliverables"
+        return "🛡️ **5-Layer Architecture Breakdown:**\n- **Layer 1:** Target Scope & Objectives\n- **Layer 2:** Multi-Source Telemetry Ingestion\n- **Layer 3:** Extraction & Normalization\n- **Layer 4:** AI Threat Correlation & Playbooks\n- **Layer 5:** Interactive SOC Dashboard & C-Suite Deliverables"
     elif "feedback" in prompt_lower or "issue" in prompt_lower or "bug" in prompt_lower:
-        return "🙏 **Thank you for your feedback!** Your message has been logged for system optimization."
+        return "🙏 **Thank you for your feedback!** We are actively upgrading UI interaction and display elements based on user reviews."
     else:
         return f"🤖 **Gemini Assistant:** I am here to help you navigate Smart Intelligence! You asked: *'{user_prompt}'*. How else can I support your threat analysis?"
 
@@ -485,7 +517,7 @@ def generate_stix_bundle(target_entity, iocs):
             })
     return {"type": "bundle", "id": bundle_id, "objects": objects}
 
-# 4. HEADER BANNER & BRANDING
+# 4. HEADER BANNER & LIVE HUD STATUS
 st.image("https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcROn-mrBQe5btdrktqpXydcOjv7g-kthMpnU2tXpevypi1IkEe_ZHPFLaRy5VxKY4WNtuds3KQnZXLLx8Y", use_container_width=True)
 
 col_hdr1, col_hdr2 = st.columns([3, 1])
@@ -503,12 +535,17 @@ with col_hdr2:
             st.session_state.sidebar_state = "collapsed"
             st.rerun()
 
-st.divider()
+# LIVE STATUS HUD BADGE & AUDIO BAR
+st.markdown("""
+    <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+        <div class="live-hud-badge">
+            <span class="live-hud-dot"></span> SYSTEM READY : 5-LAYER PIPELINE ACTIVE
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
-# RELOCATED GEMINI HELP ASSISTANT (CORNER POPOVER CHAT) & FIXED RELIABLE AUDIO SPEAKER BUTTON
 col_top_h1, col_top_h2 = st.columns([3, 1])
 with col_top_h1:
-    st.write("🔊 **Audio Briefing:** Click the speaker button to hear the live audio summary.")
     if st.button("🔊 Read Audio Briefing"):
         speech_text = "Welcome to Smart Intelligence. Enter your threat telemetry logs into the ingestion tabs, then click execute to run the 5 layer pipeline."
         if st.session_state.ai_analysis_result:
@@ -657,7 +694,7 @@ if st.button(t["btn_process"], type="primary"):
 
             st.divider()
 
-            # LAYER 5: OUTPUT DELIVERABLES & DASHBOARD
+            # LAYER 5: OUTPUT DELIVERABLES & INTERACTIVE SOC TABS
             st.header(t["l5"])
 
             col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
@@ -674,120 +711,131 @@ if st.button(t["btn_process"], type="primary"):
 
             st.write("")
 
-            col_graph1, col_graph2 = st.columns(2)
-            
-            with col_graph1:
-                st.subheader("📈 IoC Telemetry Breakdown")
-                chart_data = pd.DataFrame({
-                    'Indicator Category': list(iocs.keys()),
-                    'Count': [len(v) for v in iocs.values()]
-                })
-                bar_chart = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4).encode(
-                    x=alt.X('Indicator Category:N', sort=None, axis=alt.Axis(labelAngle=0)),
-                    y=alt.Y('Count:Q', axis=alt.Axis(tickMinStep=1)),
-                    color=alt.Color('Indicator Category:N', scale=alt.Scale(scheme='dark2'), legend=None),
-                    tooltip=['Indicator Category', 'Count']
-                ).properties(height=260).configure_axis(
-                    gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
-                ).configure_view(strokeWidth=0)
-                st.altair_chart(bar_chart, use_container_width=True)
-
-            with col_graph2:
-                st.subheader("🕸️ Layer 3 Threat Correlation Graph")
-                graph_nodes = []
-                for cat, items in iocs.items():
-                    for item in items[:2]:
-                        graph_nodes.append({"Source": target_entity or "Target Scope", "Indicator": item, "Type": cat})
-                
-                if graph_nodes:
-                    gdf = pd.DataFrame(graph_nodes)
-                    graph_chart = alt.Chart(gdf).mark_circle(size=200).encode(
-                        x='Source:N',
-                        y='Indicator:N',
-                        color='Type:N',
-                        tooltip=['Source', 'Indicator', 'Type']
-                    ).properties(height=260)
-                    st.altair_chart(graph_chart, use_container_width=True)
-                else:
-                    st.info("Insufficient IoC nodes to render correlation graph.")
-
-            if live_enrichment:
-                st.subheader("🌐 Layer 3 Live Feed Enrichment Data")
-                for item in live_enrichment:
-                    st.warning(f"📡 {item}")
-
-            st.subheader("📊 Layer 3 Extracted Indicators of Compromise")
-            filter_term = st.text_input("🔍 Filter/Search IoCs in real-time:", placeholder="Type IP, hash, or domain...")
-            
-            ioc_col1, ioc_col2 = st.columns(2)
-            
-            def filter_list(lst):
-                if not filter_term:
-                    return lst
-                return [item for item in lst if filter_term.lower() in str(item).lower()]
-
-            with ioc_col1:
-                st.write("**IPv4 Addresses:**", filter_list(iocs["IPv4"]) if filter_list(iocs["IPv4"]) else "None detected")
-                st.write("**Domains:**", filter_list(iocs["Domains"]) if filter_list(iocs["Domains"]) else "None detected")
-                st.write("**URLs:**", filter_list(iocs["URLs"]) if filter_list(iocs["URLs"]) else "None detected")
-            
-            with ioc_col2:
-                st.write("**SHA-256 Hashes:**", filter_list(iocs["SHA256"]) if filter_list(iocs["SHA256"]) else "None detected")
-                st.write("**MD5 Hashes:**", filter_list(iocs["MD5"]) if filter_list(iocs["MD5"]) else "None detected")
-                st.write("**CVE Vulnerabilities:**", filter_list(iocs["CVE"]) if filter_list(iocs["CVE"]) else "None detected")
-
-            st.subheader("🎯 Layer 3 MITRE ATT&CK TTP Mapping")
-            if ttps:
-                for ttp in ttps:
-                    st.info(f"📍 {ttp}")
-            else:
-                st.write("No explicit MITRE ATT&CK tactics matched standard heuristic keywords.")
-
-            st.subheader("🛡️ Layer 4 Fight-Back & Containment Playbook Engine")
-            st.caption("Copy and execute active containment scripts across host, network, identity, and SIEM controls.")
-
-            pb_tab1, pb_tab2, pb_tab3, pb_tab4 = st.tabs([
-                "💻 (i) Endpoint Isolation Scripts",
-                "🌐 (ii) Perimeter Firewall Rules",
-                "🔑 (iii) Identity & Kerberos Revocation",
-                "🔍 (iv) SIEM Threat Hunting Queries"
+            # ADVANCED SOC TABBED NAVIGATION
+            soc_tab1, soc_tab2, soc_tab3, soc_tab4 = st.tabs([
+                "📊 Telemetry & Correlation",
+                "🔍 IoC Inspector",
+                "🛡️ Playbook Armory",
+                "📦 Deliverables & Exports"
             ])
 
-            with pb_tab1:
-                st.code(playbooks["endpoint"], language="powershell")
-            with pb_tab2:
-                st.code(playbooks["network"], language="bash")
-            with pb_tab3:
-                st.code(playbooks["identity"], language="powershell")
-            with pb_tab4:
-                st.code(playbooks["siem"], language="sql")
+            with soc_tab1:
+                col_graph1, col_graph2 = st.columns(2)
+                with col_graph1:
+                    st.subheader("📈 IoC Telemetry Breakdown")
+                    chart_data = pd.DataFrame({
+                        'Indicator Category': list(iocs.keys()),
+                        'Count': [len(v) for v in iocs.values()]
+                    })
+                    bar_chart = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4).encode(
+                        x=alt.X('Indicator Category:N', sort=None, axis=alt.Axis(labelAngle=0)),
+                        y=alt.Y('Count:Q', axis=alt.Axis(tickMinStep=1)),
+                        color=alt.Color('Indicator Category:N', scale=alt.Scale(scheme='dark2'), legend=None),
+                        tooltip=['Indicator Category', 'Count']
+                    ).properties(height=260).configure_axis(
+                        gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
+                    ).configure_view(strokeWidth=0)
+                    st.altair_chart(bar_chart, use_container_width=True)
 
-            st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
-            dl_col1, dl_col2, dl_col3 = st.columns(3)
-            
-            with dl_col1:
-                st.download_button(
-                    label="📄 Download Executive Briefing (.txt)",
-                    data=text_report,
-                    file_name="executive_threat_briefing.txt",
-                    mime="text/plain"
-                )
+                with col_graph2:
+                    st.subheader("🕸️ Layer 3 Threat Correlation Graph")
+                    graph_nodes = []
+                    for cat, items in iocs.items():
+                        for item in items[:2]:
+                            graph_nodes.append({"Source": target_entity or "Target Scope", "Indicator": item, "Type": cat})
+                    
+                    if graph_nodes:
+                        gdf = pd.DataFrame(graph_nodes)
+                        graph_chart = alt.Chart(gdf).mark_circle(size=200).encode(
+                            x='Source:N',
+                            y='Indicator:N',
+                            color='Type:N',
+                            tooltip=['Source', 'Indicator', 'Type']
+                        ).properties(height=260)
+                        st.altair_chart(graph_chart, use_container_width=True)
+                    else:
+                        st.info("Insufficient IoC nodes to render correlation graph.")
+
+                if live_enrichment:
+                    st.subheader("🌐 Layer 3 Live Feed Enrichment Data")
+                    for item in live_enrichment:
+                        st.warning(f"📡 {item}")
+
+            with soc_tab2:
+                st.subheader("📊 Layer 3 Extracted Indicators of Compromise")
+                filter_term = st.text_input("🔍 Filter/Search IoCs in real-time:", placeholder="Type IP, hash, or domain...")
                 
-            with dl_col2:
-                st.download_button(
-                    label="📥 Download STIX 2.1 Bundle (.json)",
-                    data=json.dumps(stix_bundle, indent=4),
-                    file_name="smart_intelligence_stix21.json",
-                    mime="application/json"
-                )
+                ioc_col1, ioc_col2 = st.columns(2)
+                
+                def filter_list(lst):
+                    if not filter_term:
+                        return lst
+                    return [item for item in lst if filter_term.lower() in str(item).lower()]
 
-            with dl_col3:
-                st.download_button(
-                    label="🛡️ Download YARA Rules (.yara)",
-                    data=yara_code,
-                    file_name="smart_intelligence_rule.yara",
-                    mime="text/plain"
-                )
+                with ioc_col1:
+                    st.write("**IPv4 Addresses:**", filter_list(iocs["IPv4"]) if filter_list(iocs["IPv4"]) else "None detected")
+                    st.write("**Domains:**", filter_list(iocs["Domains"]) if filter_list(iocs["Domains"]) else "None detected")
+                    st.write("**URLs:**", filter_list(iocs["URLs"]) if filter_list(iocs["URLs"]) else "None detected")
+                
+                with ioc_col2:
+                    st.write("**SHA-256 Hashes:**", filter_list(iocs["SHA256"]) if filter_list(iocs["SHA256"]) else "None detected")
+                    st.write("**MD5 Hashes:**", filter_list(iocs["MD5"]) if filter_list(iocs["MD5"]) else "None detected")
+                    st.write("**CVE Vulnerabilities:**", filter_list(iocs["CVE"]) if filter_list(iocs["CVE"]) else "None detected")
+
+                st.subheader("🎯 Layer 3 MITRE ATT&CK TTP Mapping")
+                if ttps:
+                    for ttp in ttps:
+                        st.info(f"📍 {ttp}")
+                else:
+                    st.write("No explicit MITRE ATT&CK tactics matched standard heuristic keywords.")
+
+            with soc_tab3:
+                st.subheader("🛡️ Layer 4 Fight-Back & Containment Playbook Engine")
+                st.caption("Copy and execute active containment scripts across host, network, identity, and SIEM controls.")
+
+                pb_tab1, pb_tab2, pb_tab3, pb_tab4 = st.tabs([
+                    "💻 (i) Endpoint Isolation Scripts",
+                    "🌐 (ii) Perimeter Firewall Rules",
+                    "🔑 (iii) Identity & Kerberos Revocation",
+                    "🔍 (iv) SIEM Threat Hunting Queries"
+                ])
+
+                with pb_tab1:
+                    st.code(playbooks["endpoint"], language="powershell")
+                with pb_tab2:
+                    st.code(playbooks["network"], language="bash")
+                with pb_tab3:
+                    st.code(playbooks["identity"], language="powershell")
+                with pb_tab4:
+                    st.code(playbooks["siem"], language="sql")
+
+            with soc_tab4:
+                st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
+                dl_col1, dl_col2, dl_col3 = st.columns(3)
+                
+                with dl_col1:
+                    st.download_button(
+                        label="📄 Download Executive Briefing (.txt)",
+                        data=text_report,
+                        file_name="executive_threat_briefing.txt",
+                        mime="text/plain"
+                    )
+                    
+                with dl_col2:
+                    st.download_button(
+                        label="📥 Download STIX 2.1 Bundle (.json)",
+                        data=json.dumps(stix_bundle, indent=4),
+                        file_name="smart_intelligence_stix21.json",
+                        mime="application/json"
+                    )
+
+                with dl_col3:
+                    st.download_button(
+                        label="🛡️ Download YARA Rules (.yara)",
+                        data=yara_code,
+                        file_name="smart_intelligence_rule.yara",
+                        mime="text/plain"
+                    )
 
 st.markdown("<br><br><br>", unsafe_allow_html=True)
 
