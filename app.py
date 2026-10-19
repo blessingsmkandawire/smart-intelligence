@@ -86,62 +86,112 @@ if st.sidebar.button("❌ Hide Control Panel"):
     st.session_state.sidebar_state = "collapsed"
     st.rerun()
 
-# Dynamic Theme Styling (CSS)
+# Dynamic Theme & Advanced Glassmorphism Styling (CSS)
 if theme_choice == "Cyberpunk Neon Mode":
-    bg_color, card_bg, text_color, accent_color = "#05050a", "#0f0f1b", "#00ffcc", "#ff0055"
+    bg_gradient = "radial-gradient(circle at 50% 20%, #0d0a1a 0%, #030208 100%)"
+    card_bg = "rgba(15, 15, 27, 0.75)"
+    text_color = "#00ffcc"
+    accent_color = "#ff0055"
+    border_color = "rgba(0, 255, 204, 0.3)"
 elif theme_choice == "Clean Light Mode":
-    bg_color, card_bg, text_color, accent_color = "#f8fafc", "#ffffff", "#0f172a", "#2563eb"
-else:
-    bg_color, card_bg, text_color, accent_color = "#0b0f19", "#161e2e", "#e2e8f0", "#38bdf8"
+    bg_gradient = "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)"
+    card_bg = "rgba(255, 255, 255, 0.85)"
+    text_color = "#0f172a"
+    accent_color = "#2563eb"
+    border_color = "rgba(37, 99, 235, 0.2)"
+else:  # Dark SOC Theme
+    bg_gradient = "radial-gradient(circle at 50% 10%, #0d172a 0%, #070a12 100%)"
+    card_bg = "rgba(22, 30, 46, 0.75)"
+    text_color = "#f1f5f9"
+    accent_color = "#38bdf8"
+    border_color = "rgba(56, 189, 248, 0.25)"
 
 st.markdown(f"""
     <style>
-    .stApp {{ background-color: {bg_color}; }}
+    /* Full Page Background Pattern */
+    .stApp {{
+        background: {bg_gradient};
+        background-attachment: fixed;
+    }}
+    
+    /* High-Visibility Sidebar Styling */
     section[data-testid="stSidebar"] {{
-        background-color: #0d1527 !important;
-        border-right: 2px solid #1e293b !important;
-        box-shadow: 4px 0px 15px rgba(0, 0, 0, 0.5);
+        background: #091122 !important;
+        border-right: 1px solid #1e293b !important;
+        box-shadow: 5px 0px 20px rgba(0, 0, 0, 0.6);
     }}
     section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span {{
         color: #f1f5f9 !important;
         font-weight: 600 !important;
     }}
+
+    /* Global Typography */
     html, body, p, span, div, label, .stMarkdown, .stText {{
         color: {text_color} !important;
-        font-family: 'Inter', system-ui, sans-serif;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }}
-    h1, h2, h3, h4 {{ color: {text_color} !important; font-weight: 700 !important; }}
+    h1, h2, h3, h4 {{ color: {text_color} !important; font-weight: 700 !important; tracking: -0.02em; }}
     h1 {{ color: {accent_color} !important; }}
+
+    /* Glassmorphism Dynamic Metric Cards */
     div[data-testid="stMetric"] {{
         background: {card_bg};
-        border: 1px solid #334155;
-        border-radius: 10px;
-        padding: 15px;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid {border_color};
+        border-top: 2px solid {accent_color};
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.25);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }}
+    div[data-testid="stMetric"]:hover {{
+        transform: translateY(-3px);
+        box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.4);
     }}
     div[data-testid="stMetricValue"] > div {{
         color: {accent_color} !important;
-        font-size: 1.8rem !important;
-        font-weight: 700 !important;
+        font-size: 1.9rem !important;
+        font-weight: 800 !important;
     }}
+
+    /* Input Controls & Textareas */
     textarea, input {{
         color: {text_color} !important;
         background-color: {card_bg} !important;
-        border: 1px solid #334155 !important;
+        border: 1px solid {border_color} !important;
+        border-radius: 8px !important;
     }}
+    textarea:focus, input:focus {{
+        border-color: {accent_color} !important;
+        box-shadow: 0 0 10px {border_color} !important;
+    }}
+
+    /* Buttons Styling */
     .stButton>button {{
         width: 100%;
         font-weight: 700;
-        font-size: 1.15rem;
-        background: {accent_color} !important;
+        font-size: 1.1rem;
+        background: linear-gradient(135deg, {accent_color} 0%, #0284c7 100%) !important;
         color: #ffffff !important;
+        border: none !important;
         border-radius: 8px;
-        padding: 0.75rem;
+        padding: 0.75rem 1.25rem;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s ease;
     }}
+    .stButton>button:hover {{
+        opacity: 0.92;
+        transform: scale(1.01);
+    }}
+
+    /* Developer Footer */
     .developer-footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
-        background-color: #070a10; color: #64748b !important;
-        text-align: center; padding: 8px; font-size: 0.8rem !important;
+        background-color: #050811; color: #64748b !important;
+        text-align: center; padding: 10px; font-size: 0.85rem !important;
         border-top: 1px solid #1e293b; z-index: 999;
+        letter-spacing: 0.05em;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -423,7 +473,7 @@ with col_hdr2:
 
 st.divider()
 
-# RELOCATED GEMINI HELP ASSISTANT (CORNER POPOVER CHAT) & FIXED RELIABLE AUDIO SPEAKER BUTTON
+# RELOCATED GEMINI HELP ASSISTANT (CORNER POPOVER CHAT) & AUDIO SPEAKER BUTTON
 col_top_h1, col_top_h2 = st.columns([3, 1])
 with col_top_h1:
     st.write("🔊 **Audio Briefing:** Click the speaker button to hear the live audio summary.")
