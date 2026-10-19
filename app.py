@@ -86,39 +86,66 @@ if st.sidebar.button("❌ Hide Control Panel"):
     st.session_state.sidebar_state = "collapsed"
     st.rerun()
 
-# Dynamic Theme & Advanced Glassmorphism Styling (CSS)
+# Dynamic Theme & Advanced Glassmorphism Styling with Complex Background (CSS)
 if theme_choice == "Cyberpunk Neon Mode":
+    bg_color_solid = "#030208"
     bg_gradient = "radial-gradient(circle at 50% 20%, #0d0a1a 0%, #030208 100%)"
-    card_bg = "rgba(15, 15, 27, 0.75)"
+    card_bg = "rgba(15, 15, 27, 0.8)"
     text_color = "#00ffcc"
     accent_color = "#ff0055"
     border_color = "rgba(0, 255, 204, 0.3)"
 elif theme_choice == "Clean Light Mode":
+    bg_color_solid = "#e2e8f0"
     bg_gradient = "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)"
-    card_bg = "rgba(255, 255, 255, 0.85)"
+    card_bg = "rgba(255, 255, 255, 0.9)"
     text_color = "#0f172a"
     accent_color = "#2563eb"
     border_color = "rgba(37, 99, 235, 0.2)"
 else:  # Dark SOC Theme
+    bg_color_solid = "#070a12"
     bg_gradient = "radial-gradient(circle at 50% 10%, #0d172a 0%, #070a12 100%)"
-    card_bg = "rgba(22, 30, 46, 0.75)"
+    card_bg = "rgba(22, 30, 46, 0.82)"
     text_color = "#f1f5f9"
     accent_color = "#38bdf8"
     border_color = "rgba(56, 189, 248, 0.25)"
 
+# ADVANCED BACKGROUND DEFINITION (Scrolling Immersive Grid)
+symbols = "🛡️ 🔒 🔑 ☣️ 👨‍💻 👁️ 🌐 📡 🛰️ 📱"
 st.markdown(f"""
     <style>
-    /* Full Page Background Pattern */
+    /* 1. Full Page Immersive Fixed Background */
     .stApp {{
-        background: {bg_gradient};
+        background-color: {bg_color_solid};
+        background-image: {bg_gradient};
         background-attachment: fixed;
     }}
     
-    /* High-Visibility Sidebar Styling */
+    /* 2. Scrolling Transparent Cybersecurity Grid Overlay */
+    .stApp::before {{
+        content: '{symbols * 15}';
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        display: grid;
+        grid-template-columns: repeat(15, 1fr);
+        grid-template-rows: repeat(15, 1fr);
+        font-size: 20px;
+        color: white; /* Base color before opacity */
+        opacity: 0.04; /* Highly transparent */
+        justify-items: center; align-items: center;
+        overflow: hidden;
+        pointer-events: none; /* User can't click symbols */
+        z-index: 0; /* Behind everything */
+        letter-spacing: 15px;
+        line-height: 2;
+    }}
+    
+    /* 3. High-Visibility Sidebar Styling */
     section[data-testid="stSidebar"] {{
         background: #091122 !important;
         border-right: 1px solid #1e293b !important;
         box-shadow: 5px 0px 20px rgba(0, 0, 0, 0.6);
+        z-index: 100; /* In front of bg grid */
     }}
     section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span {{
         color: #f1f5f9 !important;
@@ -136,11 +163,11 @@ st.markdown(f"""
     /* Glassmorphism Dynamic Metric Cards */
     div[data-testid="stMetric"] {{
         background: {card_bg};
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(14px) saturate(180%);
+        -webkit-backdrop-filter: blur(14px) saturate(180%);
         border: 1px solid {border_color};
         border-top: 2px solid {accent_color};
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 16px 20px;
         box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.25);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -183,6 +210,11 @@ st.markdown(f"""
     .stButton>button:hover {{
         opacity: 0.92;
         transform: scale(1.01);
+    }}
+
+    /* Main Container Padding to clear fixed elements */
+    .stApp > div {{
+        padding-bottom: 80px;
     }}
 
     /* Developer Footer */
@@ -473,7 +505,7 @@ with col_hdr2:
 
 st.divider()
 
-# RELOCATED GEMINI HELP ASSISTANT (CORNER POPOVER CHAT) & AUDIO SPEAKER BUTTON
+# RELOCATED GEMINI HELP ASSISTANT (CORNER POPOVER CHAT) & FIXED RELIABLE AUDIO SPEAKER BUTTON
 col_top_h1, col_top_h2 = st.columns([3, 1])
 with col_top_h1:
     st.write("🔊 **Audio Briefing:** Click the speaker button to hear the live audio summary.")
