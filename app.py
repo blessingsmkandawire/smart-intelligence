@@ -83,57 +83,62 @@ if st.sidebar.button("❌ Hide Control Panel"):
     st.session_state.sidebar_state = "collapsed"
     st.rerun()
 
-# Dynamic Theme & Futuristic Cyber-SOC UI Styling (CSS)
+# Dynamic Theme & Immersive Scrolling Cyber Background CSS
 if theme_choice == "Cyberpunk Neon Mode":
     bg_color_solid = "#030208"
-    bg_gradient = "radial-gradient(circle at 50% 20%, #150a2b 0%, #030208 100%)"
-    card_bg = "rgba(18, 15, 36, 0.85)"
+    bg_gradient = "radial-gradient(circle at 50% 10%, #1f0b3b 0%, #030208 80%)"
+    card_bg = "rgba(18, 15, 36, 0.78)"
     text_color = "#00ffcc"
     accent_color = "#ff0055"
     border_color = "rgba(0, 255, 204, 0.4)"
-    glow_shadow = "0 0 20px rgba(255, 0, 85, 0.25)"
+    glow_shadow = "0 0 25px rgba(255, 0, 85, 0.25)"
 elif theme_choice == "Clean Light Mode":
     bg_color_solid = "#f1f5f9"
-    bg_gradient = "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)"
-    card_bg = "rgba(255, 255, 255, 0.95)"
+    bg_gradient = "linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%)"
+    card_bg = "rgba(255, 255, 255, 0.88)"
     text_color = "#0f172a"
     accent_color = "#2563eb"
     border_color = "rgba(37, 99, 235, 0.25)"
     glow_shadow = "0 8px 25px rgba(37, 99, 235, 0.15)"
 else:  # Dark SOC Theme (Default)
     bg_color_solid = "#050814"
-    bg_gradient = "radial-gradient(circle at 50% 10%, #0c1b33 0%, #050814 100%)"
-    card_bg = "rgba(16, 24, 40, 0.88)"
+    bg_gradient = "radial-gradient(circle at 50% 15%, #0b1e3f 0%, #050814 85%)"
+    card_bg = "rgba(13, 20, 35, 0.78)"
     text_color = "#f1f5f9"
     accent_color = "#38bdf8"
     border_color = "rgba(56, 189, 248, 0.3)"
     glow_shadow = "0 8px 30px rgba(56, 189, 248, 0.2)"
 
-symbols = "🛡️ 🔒 🔑 ☣️ 👨‍💻 👁️ 🌐 📡 🛰️ 📱"
+symbols = "🛡️ 🔒 🔑 ☣️ 👨‍💻 👁️ 🌐 📡 🛰️ 📱 ⚡ 💻"
 st.markdown(f"""
     <style>
+    /* 1. Full Page Immersive Scrolling Background */
     .stApp {{
         background-color: {bg_color_solid};
         background-image: {bg_gradient};
         background-attachment: fixed;
     }}
+    
+    /* 2. Floating Cyber Visuals Grid across the ENTIRE page height */
     .stApp::before {{
-        content: '{symbols * 15}';
+        content: '{symbols * 20}';
         position: fixed;
         top: 0; left: 0;
         width: 100%; height: 100%;
         display: grid;
-        grid-template-columns: repeat(15, 1fr);
-        grid-template-rows: repeat(15, 1fr);
-        font-size: 22px;
-        opacity: 0.035;
+        grid-template-columns: repeat(12, 1fr);
+        grid-template-rows: repeat(12, 1fr);
+        font-size: 26px;
+        opacity: 0.055; /* Makes symbols clearly visible and glowing through */
         justify-items: center; align-items: center;
         overflow: hidden;
         pointer-events: none;
         z-index: 0;
-        letter-spacing: 18px;
-        line-height: 2;
+        letter-spacing: 25px;
+        line-height: 2.5;
     }}
+
+    /* 3. Sleek Sidebar */
     section[data-testid="stSidebar"] {{
         background: #080e1e !important;
         border-right: 1px solid #1e293b !important;
@@ -144,38 +149,49 @@ st.markdown(f"""
         color: #f1f5f9 !important;
         font-weight: 600 !important;
     }}
+
+    /* 4. Typography & Headers */
     html, body, p, span, div, label, .stMarkdown, .stText {{
         color: {text_color} !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }}
     h1, h2, h3, h4 {{ color: {text_color} !important; font-weight: 700 !important; letter-spacing: -0.01em; }}
-    h1 {{ color: {accent_color} !important; text-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }}
+    h1 {{ color: {accent_color} !important; text-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }}
 
-    div[data-testid="stMetric"] {{
-        background: {card_bg};
-        backdrop-filter: blur(16px) saturate(200%);
+    /* 5. Translucent Glassmorphism Cards (Letting background show through) */
+    div[data-testid="stMetric"], .stExpander, div.stTabs {{
+        background: {card_bg} !important;
+        backdrop-filter: blur(18px) saturate(180%);
+        -webkit-backdrop-filter: blur(18px) saturate(180%);
         border: 1px solid {border_color};
         border-top: 3px solid {accent_color};
         border-radius: 14px;
         padding: 18px 22px;
         box-shadow: {glow_shadow};
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }}
     div[data-testid="stMetric"]:hover {{
-        transform: translateY(-5px);
-        box-shadow: 0 12px 35px rgba(56, 189, 248, 0.35);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 35px rgba(56, 189, 248, 0.4);
     }}
     div[data-testid="stMetricValue"] > div {{
         color: {accent_color} !important;
         font-size: 2.1rem !important;
         font-weight: 800 !important;
     }}
+
+    /* 6. Inputs & Textareas with Glass Effect */
     textarea, input {{
         color: {text_color} !important;
         background-color: {card_bg} !important;
         border: 1px solid {border_color} !important;
         border-radius: 10px !important;
     }}
+    textarea:focus, input:focus {{
+        border-color: {accent_color} !important;
+        box-shadow: 0 0 15px {border_color} !important;
+    }}
+
+    /* 7. Glowing Action Buttons */
     .stButton>button {{
         width: 100%;
         font-weight: 700;
@@ -185,29 +201,28 @@ st.markdown(f"""
         border: none !important;
         border-radius: 10px;
         padding: 0.8rem 1.4rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         transition: all 0.25s ease;
     }}
     .stButton>button:hover {{
         opacity: 0.95;
         transform: scale(1.02);
+        box-shadow: 0 6px 25px {border_color};
     }}
-    .stExpander {{
-        background: {card_bg} !important;
-        border: 1px solid {border_color} !important;
-        border-radius: 12px !important;
-    }}
+
+    /* 8. Live Pulse Indicator HUD */
     .live-hud-badge {{
         display: inline-flex;
         align-items: center;
         background: rgba(16, 185, 129, 0.15);
         border: 1px solid rgba(16, 185, 129, 0.4);
         color: #34d399;
-        padding: 4px 12px;
+        padding: 6px 14px;
         border-radius: 20px;
         font-size: 0.85rem;
         font-weight: 700;
         letter-spacing: 0.05em;
+        backdrop-filter: blur(10px);
     }}
     .live-hud-dot {{
         height: 8px; width: 8px;
@@ -223,12 +238,14 @@ st.markdown(f"""
         70% {{ transform: scale(1); box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }}
         100% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
     }}
-    .stApp > div {{ padding-bottom: 90px; }}
+
+    .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
     .developer-footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
         background-color: #03050c; color: #64748b !important;
         text-align: center; padding: 10px; font-size: 0.85rem !important;
         border-top: 1px solid #1e293b; z-index: 999;
+        letter-spacing: 0.08em;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -771,7 +788,7 @@ if st.button(t["btn_process"], type="primary"):
                 
                 with ioc_col2:
                     st.write("**SHA-256 Hashes:**", filter_list(iocs["SHA256"]) if filter_list(iocs["SHA256"]) else "None detected")
-                    st.write("**MD5 Hashes:**", filter_list(iocs["MD5"]) if filter_list(iocs["MD5"]) else "None detected")
+                    st.write("MD5 Hashes:**", filter_list(iocs["MD5"]) if filter_list(iocs["MD5"]) else "None detected")
                     st.write("**CVE Vulnerabilities:**", filter_list(iocs["CVE"]) if filter_list(iocs["CVE"]) else "None detected")
 
                 st.subheader("🎯 Layer 3 MITRE ATT&CK TTP Mapping")
