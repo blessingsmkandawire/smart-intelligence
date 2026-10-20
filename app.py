@@ -14,15 +14,15 @@ if "sidebar_state" not in st.session_state:
 if "ai_analysis_result" not in st.session_state:
     st.session_state.ai_analysis_result = None
 
-if "show_copilot" not in st.session_state:
-    st.session_state.show_copilot = True
+if "copilot_open" not in st.session_state:
+    st.session_state.copilot_open = False
 
 if "voice_mode" not in st.session_state:
     st.session_state.voice_mode = False
 
 if "help_chat_history" not in st.session_state:
     st.session_state.help_chat_history = [
-        {"role": "assistant", "content": "👋 **Hello! I'm your Gemini CTI Copilot.** I'm here to provide real-time threat reasoning and guide you through your security pipelines."}
+        {"role": "assistant", "content": "👋 **Hello! I'm your Gemini CTI Copilot.** Ask me anything about your threat pipeline or security workflows!"}
     ]
 
 # PAGE CONFIGURATION
@@ -175,22 +175,19 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
-# 4. CSS STYLING & SOLID WHITE FLOATING COPILOT CONTAINER
+# 4. CSS STYLING
 st.markdown(f"""
     <style>
-    /* Full Page Immersive Styling */
     .stApp {{
         background-color: {bg_color_solid} !important;
         background-image: {bg_gradient} !important;
         background-attachment: fixed !important;
     }}
 
-    /* Transparent Main Streamlit Containers */
     .block-container, section.main, .stMainBlockContainer, [data-testid="stMain"], [data-testid="stVerticalBlock"] {{
         background: transparent !important;
     }}
 
-    /* High-Tech Control Panel Sidebar */
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #060b18 0%, #030611 100%) !important;
         border-right: 2px solid {border_color} !important;
@@ -225,28 +222,6 @@ st.markdown(f"""
         transition: all 0.3s ease-in-out !important;
     }}
 
-    section[data-testid="stSidebar"] div[data-baseweb="select"]:hover,
-    section[data-testid="stSidebar"] div[data-testid="stCheckbox"]:hover {{
-        border-color: #00ffcc !important;
-        box-shadow: 0 0 20px #00ffcc !important;
-    }}
-
-    section[data-testid="stSidebar"] .stButton>button {{
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
-        border: 1.5px solid {border_color} !important;
-        color: #f8fafc !important;
-        font-weight: 700 !important;
-        border-radius: 10px !important;
-        box-shadow: 0 0 15px rgba(56, 189, 248, 0.3) !important;
-    }}
-
-    section[data-testid="stSidebar"] .stButton>button:hover {{
-        background: linear-gradient(135deg, {accent_color} 0%, #0284c7 100%) !important;
-        box-shadow: 0 0 25px {accent_color} !important;
-        color: #ffffff !important;
-    }}
-
-    /* Typography & Headers */
     html, body, p, span, div, label, .stMarkdown, .stText {{
         color: {text_color} !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -254,80 +229,42 @@ st.markdown(f"""
     h1, h2, h3, h4 {{ 
         color: {text_color} !important; 
         font-weight: 700 !important; 
-        letter-spacing: -0.01em; 
     }}
     h1 {{ 
         color: {accent_color} !important; 
         text-shadow: 0 0 20px {accent_color}, 0 0 35px rgba(56, 189, 248, 0.6); 
     }}
-    h2, h3 {{
-        text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
-    }}
 
-    /* High-Glow Main Inputs, Dropdowns, and Textareas */
     textarea, input, select, div[data-baseweb="select"] > div {{
         color: {text_color} !important;
         background-color: rgba(6, 13, 28, 0.9) !important;
         border: 1.5px solid {border_color} !important;
         border-radius: 10px !important;
         box-shadow: 0 0 12px rgba(56, 189, 248, 0.25), inset 0 0 8px rgba(56, 189, 248, 0.1) !important;
-        transition: all 0.3s ease-in-out !important;
-    }}
-    textarea:focus, input:focus, div[data-baseweb="select"]:focus-within {{
-        border-color: #00ffcc !important;
-        box-shadow: 0 0 25px #00ffcc, inset 0 0 12px rgba(0, 255, 204, 0.3) !important;
-        transform: translateY(-1px);
     }}
 
-    /* Ultra-Glowing Glassmorphism Cards & Tabs */
     div[data-testid="stMetric"], .stExpander, div.stTabs {{
         background: {card_bg} !important;
         backdrop-filter: blur(20px) saturate(200%);
-        -webkit-backdrop-filter: blur(20px) saturate(200%);
         border: 1px solid {border_color} !important;
         border-top: 3px solid {accent_color} !important;
         border-radius: 14px;
         padding: 18px 22px;
         box-shadow: {glow_shadow} !important;
     }}
-    div[data-testid="stMetric"]:hover {{
-        transform: translateY(-4px);
-        box-shadow: 0 0 30px {accent_color} !important;
-    }}
-    div[data-testid="stMetricValue"] > div {{
-        color: {accent_color} !important;
-        font-size: 2.2rem !important;
-        font-weight: 800 !important;
-        text-shadow: 0 0 15px {accent_color};
-    }}
 
-    /* Pulsing Electric Trigger Button */
     .stButton>button {{
         width: 100%;
         font-weight: 800;
         font-size: 1.2rem;
-        letter-spacing: 0.05em;
         background: linear-gradient(135deg, #0284c7 0%, #38bdf8 50%, #00ffcc 100%) !important;
         color: #030712 !important;
         border: none !important;
         border-radius: 12px;
         padding: 0.95rem 1.5rem;
         box-shadow: 0 0 25px rgba(56, 189, 248, 0.6), 0 0 40px rgba(0, 255, 204, 0.4);
-        transition: all 0.3s ease-in-out;
-        animation: pulse-button-glow 2.5s infinite alternate;
-    }}
-    .stButton>button:hover {{
-        transform: scale(1.02);
-        box-shadow: 0 0 40px #00ffcc, 0 0 60px rgba(56, 189, 248, 0.8) !important;
-        color: #000000 !important;
     }}
 
-    @keyframes pulse-button-glow {{
-        0% {{ box-shadow: 0 0 20px rgba(56, 189, 248, 0.5), 0 0 30px rgba(0, 255, 204, 0.3); }}
-        100% {{ box-shadow: 0 0 35px rgba(56, 189, 248, 0.8), 0 0 55px rgba(0, 255, 204, 0.6); }}
-    }}
-
-    /* Live HUD Status Badge & Dot */
     .live-hud-badge {{
         display: inline-flex;
         align-items: center;
@@ -338,9 +275,7 @@ st.markdown(f"""
         border-radius: 20px;
         font-size: 0.88rem;
         font-weight: 800;
-        letter-spacing: 0.06em;
         box-shadow: 0 0 18px rgba(52, 211, 153, 0.4);
-        backdrop-filter: blur(12px);
     }}
     .live-hud-dot {{
         height: 10px; width: 10px;
@@ -357,7 +292,6 @@ st.markdown(f"""
         100% {{ transform: scale(0.9); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
     }}
 
-    /* High Visibility IoC Display Cards */
     .ioc-box {{
         background: rgba(3, 7, 18, 0.95);
         border: 1px solid {border_color};
@@ -367,10 +301,8 @@ st.markdown(f"""
         margin-bottom: 8px;
         font-family: 'Courier New', monospace;
         color: #38bdf8;
-        box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
     }}
 
-    /* Highly Readable Cyber Terminal Playbook Container */
     .playbook-container {{
         background-color: #020617 !important;
         border: 1.5px solid {border_color} !important;
@@ -378,7 +310,6 @@ st.markdown(f"""
         padding: 18px 22px !important;
         margin-top: 10px !important;
         margin-bottom: 15px !important;
-        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.95), 0 0 20px rgba(56, 189, 248, 0.25) !important;
     }}
 
     .playbook-line {{
@@ -394,25 +325,6 @@ st.markdown(f"""
     .playbook-comment {{
         color: #38bdf8 !important;
         font-weight: 700 !important;
-    }}
-
-    /* FLOATING CORNER COPILOT STYLING (Solid White Card for Maximum Contrast) */
-    .floating-copilot-card {{
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 380px;
-        height: 520px;
-        background: #ffffff !important;
-        color: #0f172a !important;
-        border-radius: 16px;
-        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
-        z-index: 99999;
-        display: flex;
-        flex-direction: column;
-        border: 3px solid #0284c7;
-        padding: 14px;
-        overflow-y: auto;
     }}
 
     .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
@@ -567,7 +479,7 @@ def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
 
     return "\n".join(narrative_lines), risk_score
 
-# ADVANCED REMEDIATION PLAYBOOK GENERATOR (STRUCTURED HTML OUTPUT)
+# ADVANCED REMEDIATION PLAYBOOK GENERATOR
 def generate_remediation_playbooks(iocs, ttps):
     ips = iocs.get("IPv4", [])
     domains = iocs.get("Domains", [])
@@ -1016,49 +928,88 @@ if st.button(t["btn_process"], type="primary"):
                     )
 
 # ==========================================
-# FLOATING CORNER COPILOT WIDGET (SOLID WHITE)
+# COMPACT FLOATING CORNER COPILOT WIDGET
 # ==========================================
-if st.session_state.show_copilot:
-    # We use HTML/JS container rendering or Streamlit markdown container overlay
-    st.markdown("""
-        <div class="floating-copilot-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 8px;">
-                <h4 style="color: #0f172a !important; margin: 0; font-size: 1.05rem;">🤖 Gemini CTI Copilot</h4>
-            </div>
-    """, unsafe_allow_html=True)
+st.markdown("""
+    <style>
+    .floating-copilot-container {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 99999;
+        font-family: 'Inter', sans-serif;
+    }
+    .copilot-popup-box {
+        position: absolute;
+        bottom: 65px;
+        right: 0;
+        width: 340px;
+        height: 440px;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border-radius: 14px;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+        border: 2px solid #0284c7;
+        display: flex;
+        flex-direction: column;
+        padding: 12px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-    # Chat history display area inside the floating box
-    chat_container = st.container(height=340)
-    with chat_container:
-        for message in st.session_state.help_chat_history:
-            if message["role"] == "assistant":
-                st.markdown(f"<div style='background:#f1f5f9; padding:8px 12px; border-radius:8px; margin-bottom:6px; color:#0f172a; font-size:0.9rem;'><b>Copilot:</b> {message['content']}</div>", unsafe_allow_html=True)
-            else:
-                st.markdown(f"<div style='background:#0284c7; padding:8px 12px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.9rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+# Toggle button / window container positioned at bottom right
+with st.container():
+    st.markdown('<div class="floating-copilot-container">', unsafe_allow_html=True)
+    
+    # Toggle button state
+    if not st.session_state.copilot_open:
+        if st.button("🤖 CTI Copilot", key="open_copilot_btn"):
+            st.session_state.copilot_open = True
+            st.rerun()
+    else:
+        # Show compact popup box
+        st.markdown('<div class="copilot-popup-box">', unsafe_allow_html=True)
+        col_title, col_close = st.columns([4, 1])
+        with col_title:
+            st.markdown("<b style='color:#0f172a;'>🤖 Gemini CTI Copilot</b>", unsafe_allow_html=True)
+        with col_close:
+            if st.button("✕", key="close_copilot_btn"):
+                st.session_state.copilot_open = False
+                st.rerun()
 
-    # Input form for floating widget
-    user_q = st.chat_input("Ask Copilot a question...", key="floating_copilot_input")
-    if user_q:
-        st.session_state.help_chat_history.append({"role": "user", "content": user_q})
-        bot_reply = answer_copilot_reasoning(user_q)
-        st.session_state.help_chat_history.append({"role": "assistant", "content": bot_reply})
-        
-        # If live voice mode is enabled in Control Panel, speak the answer aloud!
-        if st.session_state.voice_mode:
-            clean_speech = bot_reply.replace('"', '').replace('\n', ' ')
-            st.components.v1.html(f"""
-                <script>
-                if ('speechSynthesis' in window) {{
-                    window.speechSynthesis.cancel();
-                    var utterance = new SpeechSynthesisUtterance("{clean_speech}");
-                    utterance.rate = 1.0;
-                    window.speechSynthesis.speak(utterance);
-                }}
-                </script>
-            """, height=0)
-        st.rerun()
+        # Chat message scroll area
+        chat_box = st.container(height=300)
+        with chat_box:
+            for message in st.session_state.help_chat_history:
+                if message["role"] == "assistant":
+                    st.markdown(f"<div style='background:#f1f5f9; padding:6px 10px; border-radius:8px; margin-bottom:6px; color:#0f172a; font-size:0.85rem;'><b>Copilot:</b> {message['content']}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div style='background:#0284c7; padding:6px 10px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.85rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+        # Chat Input
+        user_input = st.text_input("Ask a question...", key="copilot_chat_input_field", label_visibility="collapsed", placeholder="Ask copilot...")
+        if user_input:
+            st.session_state.help_chat_history.append({"role": "user", "content": user_input})
+            reply = answer_copilot_reasoning(user_input)
+            st.session_state.help_chat_history.append({"role": "assistant", "content": reply})
+            
+            if st.session_state.voice_mode:
+                clean_speech = reply.replace('"', '').replace('\n', ' ')
+                st.components.v1.html(f"""
+                    <script>
+                    if ('speechSynthesis' in window) {{
+                        window.speechSynthesis.cancel();
+                        var utterance = new SpeechSynthesisUtterance("{clean_speech}");
+                        utterance.rate = 1.0;
+                        window.speechSynthesis.speak(utterance);
+                    }}
+                    </script>
+                """, height=0)
+            st.rerun()
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("<br><br><br>", unsafe_allow_html=True)
 
