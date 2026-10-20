@@ -928,20 +928,20 @@ if st.button(t["btn_process"], type="primary"):
                     )
 
 # ==========================================
-# COMPACT FLOATING CORNER COPILOT WIDGET
+# COMPACT TOP-RIGHT FLOATING COPILOT WIDGET
 # ==========================================
 st.markdown("""
     <style>
     .floating-copilot-container {
         position: fixed;
-        bottom: 25px;
+        top: 20px;
         right: 25px;
         z-index: 99999;
         font-family: 'Inter', sans-serif;
     }
     .copilot-popup-box {
         position: absolute;
-        bottom: 65px;
+        top: 50px;
         right: 0;
         width: 340px;
         height: 440px;
@@ -957,17 +957,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Toggle button / window container positioned at bottom right
 with st.container():
     st.markdown('<div class="floating-copilot-container">', unsafe_allow_html=True)
     
-    # Toggle button state
     if not st.session_state.copilot_open:
         if st.button("🤖 CTI Copilot", key="open_copilot_btn"):
             st.session_state.copilot_open = True
             st.rerun()
     else:
-        # Show compact popup box
         st.markdown('<div class="copilot-popup-box">', unsafe_allow_html=True)
         col_title, col_close = st.columns([4, 1])
         with col_title:
@@ -977,7 +974,6 @@ with st.container():
                 st.session_state.copilot_open = False
                 st.rerun()
 
-        # Chat message scroll area
         chat_box = st.container(height=300)
         with chat_box:
             for message in st.session_state.help_chat_history:
@@ -986,7 +982,6 @@ with st.container():
                 else:
                     st.markdown(f"<div style='background:#0284c7; padding:6px 10px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.85rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
 
-        # Chat Input
         user_input = st.text_input("Ask a question...", key="copilot_chat_input_field", label_visibility="collapsed", placeholder="Ask copilot...")
         if user_input:
             st.session_state.help_chat_history.append({"role": "user", "content": user_input})
