@@ -315,6 +315,18 @@ st.markdown(f"""
         100% {{ transform: scale(0.9); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
     }}
 
+    /* 10. HIGH-VISIBILITY CODE BLOCKS (PLAYBOOK ARMORY FIX) */
+    div[data-testid="stCodeBlock"], .stCodeBlock pre, .stCodeBlock code, div[data-testid="stCodeBlock"] > div {{
+        background-color: #030712 !important;
+        color: #38bdf8 !important;
+        border: 1.5px solid {border_color} !important;
+        border-radius: 10px !important;
+        box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8), 0 0 15px rgba(56, 189, 248, 0.2) !important;
+    }}
+    div[data-testid="stCodeBlock"] code span {{
+        color: #f1f5f9 !important;
+    }}
+
     .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
     .developer-footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
