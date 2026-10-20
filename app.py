@@ -6,11 +6,6 @@ from datetime import datetime
 import pandas as pd
 import altair as alt
 import requests
-from io import BytesIO
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
 
 # 1. SESSION STATE FOR THEME, SIDEBAR, & CHAT
 if "sidebar_state" not in st.session_state:
@@ -145,7 +140,7 @@ else:  # Dark SOC Theme
     copilot_bubble_user = "#38bdf8"
     copilot_bubble_assistant = "#101d38"
 
-# 3. LIVE GLOWING ANIMATED BACKGROUND INJECTION
+# LIVE GLOWING ANIMATED BACKGROUND INJECTION
 st.components.v1.html(f"""
     <canvas id="cyberCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1;"></canvas>
     <script>
@@ -196,7 +191,7 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
-# 4. CSS STYLING WITH DROPDOWN FIX
+# CSS STYLING WITH DROPDOWN FIX
 st.markdown(f"""
     <style>
     .stApp {{
@@ -209,7 +204,6 @@ st.markdown(f"""
         background: transparent !important;
     }}
 
-    /* SIDEBAR DROPDOWN & OVERFLOW FIX */
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #060b18 0%, #030611 100%) !important;
         border-right: 2px solid {border_color} !important;
@@ -272,7 +266,6 @@ st.markdown(f"""
         box-shadow: {glow_shadow} !important;
     }}
 
-    /* ELITE SOC PROFESSIONAL LAYER 5 DASHBOARD HERO */
     .soc-dashboard-hero {{
         background: linear-gradient(135deg, rgba(11, 19, 43, 0.95) 0%, rgba(4, 9, 22, 0.98) 100%) !important;
         border: 2px solid {border_color} !important;
@@ -436,101 +429,6 @@ def generate_yara_rule(target_entity, iocs):
         any of them
 }}"""
 
-# GENERATE PDF REPORT USING REPORTLAB
-def generate_pdf_report(target_entity, timeframe, intel_goal, risk_level, accuracy_score, iocs, ttps):
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
-    story = []
-    styles = getSampleStyleSheet()
-
-    title_style = ParagraphStyle(
-        'DocTitle',
-        parent=styles['Heading1'],
-        fontSize=20,
-        textColor=colors.HexColor('#0284c7'),
-        alignment=1,
-        spaceAfter=15
-    )
-    
-    subtitle_style = ParagraphStyle(
-        'DocSubtitle',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor=colors.HexColor('#475569'),
-        alignment=1,
-        spaceAfter=20
-    )
-
-    heading2 = ParagraphStyle(
-        'SectionHeading',
-        parent=styles['Heading2'],
-        fontSize=14,
-        textColor=colors.HexColor('#0f172a'),
-        spaceBefore=12,
-        spaceAfter=8
-    )
-
-    body_style = ParagraphStyle(
-        'BodyDark',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor=colors.HexColor('#334155'),
-        spaceAfter=6
-    )
-
-    story.append(Paragraph("<b>SMART INTELLIGENCE | EXECUTIVE THREAT REPORT</b>", title_style))
-    story.append(Paragraph(f"Generated on {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')} | Author: blessingsmkandawire", subtitle_style))
-    story.append(Spacer(1, 10))
-
-    meta_data = [
-        [Paragraph("<b>Target Scope:</b>", body_style), Paragraph(target_entity or "Global Infrastructure", body_style)],
-        [Paragraph("<b>Intelligence Goal:</b>", body_style), Paragraph(intel_goal or "Threat Analysis", body_style)],
-        [Paragraph("<b>Timeframe:</b>", body_style), Paragraph(timeframe, body_style)],
-        [Paragraph("<b>Risk Rating:</b>", body_style), Paragraph(f"<font color='red'><b>{risk_level}</b></font>", body_style)],
-        [Paragraph("<b>Confidence Score:</b>", body_style), Paragraph(f"{accuracy_score}%", body_style)]
-    ]
-    t_meta = Table(meta_data, colWidths=[150, 380])
-    t_meta.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f8fafc')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#cbd5e1')),
-        ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#e2e8f0')),
-        ('PADDING', (0,0), (-1,-1), 6),
-    ]))
-    story.append(t_meta)
-    story.append(Spacer(1, 15))
-
-    story.append(Paragraph("<b>Indicators of Compromise (IoC) Summary</b>", heading2))
-    total_iocs = sum(len(v) for v in iocs.values())
-    
-    ioc_data = [
-        ["Indicator Type", "Extracted Count", "Sample Indicators"],
-        ["IPv4 Addresses", str(len(iocs.get("IPv4", []))), ", ".join(iocs.get("IPv4", [])[:2]) or "None"],
-        ["Domains", str(len(iocs.get("Domains", []))), ", ".join(iocs.get("Domains", [])[:2]) or "None"],
-        ["Hashes (SHA256/MD5)", str(len(iocs.get("SHA256", [])) + len(iocs.get("MD5", []))), "Cryptographic Signatures Flagged"],
-        ["CVE Vulnerabilities", str(len(iocs.get("CVE", []))), ", ".join(iocs.get("CVE", [])) or "None"]
-    ]
-    
-    t_ioc = Table(ioc_data, colWidths=[140, 110, 280])
-    t_ioc.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0284c7')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#94a3b8')),
-        ('PADDING', (0,0), (-1,-1), 6),
-    ]))
-    story.append(t_ioc)
-    story.append(Spacer(1, 15))
-
-    story.append(Paragraph("<b>MITRE ATT&CK Tactics Mapped</b>", heading2))
-    if ttps:
-        for ttp in ttps:
-            story.append(Paragraph(f"• {ttp}", body_style))
-    else:
-        story.append(Paragraph("No direct high-risk MITRE TTPs flagged in current sample stream.", body_style))
-
-    doc.build(story)
-    buffer.seek(0)
-    return buffer
-
 # COPILOT REASONING ASSISTANT
 def answer_copilot_reasoning(user_prompt):
     prompt_lower = user_prompt.lower()
@@ -560,7 +458,7 @@ def answer_copilot_reasoning(user_prompt):
             "1. **Layer 1:** Specify your target scope.\n"
             "2. **Layer 2:** Ingest logs, OSINT, or CSINT in the ingestion tabs.\n"
             "3. **Pipeline Execution:** Click **Execute 5-Layer Intelligence Pipeline**.\n"
-            "4. **Layer 5:** Access executive briefings, IoC tables, playbooks, and PDF exports!"
+            "4. **Layer 5:** Access executive briefings, IoC tables, playbooks, and exports!"
         )
     elif any(k in prompt_lower for k in ["hello", "hi", "hey", "who are you"]):
         return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis or security workflows today?"
@@ -953,10 +851,6 @@ if st.button(t["btn_process"], type="primary"):
             text_report = generate_executive_text_report(
                 target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs, ttps, live_enrichment
             )
-            
-            pdf_buffer = generate_pdf_report(
-                target_entity, timeframe, intel_goal, risk_level, accuracy_score, iocs, ttps
-            )
 
             st.success("5-Layer Intelligence Pipeline Execution Complete!")
 
@@ -1114,11 +1008,11 @@ if st.button(t["btn_process"], type="primary"):
 
             with soc_tab4:
                 st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
-                dl_col1, dl_col2, dl_col3, dl_col4 = st.columns(4)
+                dl_col1, dl_col2, dl_col3 = st.columns(3)
                 
                 with dl_col1:
                     st.download_button(
-                        label="📄 Download Text Brief (.txt)",
+                        label="📄 Download Executive Briefing (.txt)",
                         data=text_report,
                         file_name="executive_threat_briefing.txt",
                         mime="text/plain"
@@ -1126,7 +1020,7 @@ if st.button(t["btn_process"], type="primary"):
                     
                 with dl_col2:
                     st.download_button(
-                        label="📥 Download STIX 2.1 (.json)",
+                        label="📥 Download STIX 2.1 Bundle (.json)",
                         data=json.dumps(stix_bundle, indent=4),
                         file_name="smart_intelligence_stix21.json",
                         mime="application/json"
@@ -1134,18 +1028,10 @@ if st.button(t["btn_process"], type="primary"):
 
                 with dl_col3:
                     st.download_button(
-                        label="🛡️ Download YARA (.yara)",
+                        label="🛡️ Download YARA Rules (.yara)",
                         data=yara_code,
                         file_name="smart_intelligence_rule.yara",
                         mime="text/plain"
-                    )
-
-                with dl_col4:
-                    st.download_button(
-                        label="📕 Download Executive PDF (.pdf)",
-                        data=pdf_buffer,
-                        file_name="executive_threat_report.pdf",
-                        mime="application/pdf"
                     )
 
                 st.divider()
