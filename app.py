@@ -114,32 +114,32 @@ st.markdown(f"""
     <style>
     /* 1. Full Page Immersive Scrolling Background */
     .stApp {{
-        background-color: {bg_color_solid};
-        background-image: {bg_gradient};
-        background-attachment: fixed;
+        background-color: {bg_color_solid} !important;
+        background-image: {bg_gradient} !important;
+        background-attachment: fixed !important;
     }}
     
     /* 2. Floating Cyber Visuals Grid across the ENTIRE page height */
     .stApp::before {{
-        content: '{symbols * 25}';
+        content: '{symbols * 30}';
         position: fixed;
         top: 0; left: 0;
-        width: 100%; height: 100%;
+        width: 100vw; height: 100vh;
         display: grid;
         grid-template-columns: repeat(12, 1fr);
         grid-template-rows: repeat(12, 1fr);
-        font-size: 26px;
-        opacity: 0.07;
+        font-size: 28px;
+        opacity: 0.12;
         justify-items: center; align-items: center;
         overflow: hidden;
         pointer-events: none;
         z-index: 0;
-        letter-spacing: 25px;
+        letter-spacing: 30px;
         line-height: 2.5;
     }}
 
-    /* 3. MAKE STREAMLIT CONTAINERS TRANSPARENT SO BACKGROUND SHOWS THROUGH */
-    .block-container, section.main, .stMainBlockContainer {{
+    /* 3. FORCE ALL STREAMLIT MAIN & BLOCK CONTAINERS TO BE FULLY TRANSPARENT */
+    .block-container, section.main, .stMainBlockContainer, [data-testid="stMain"], [data-testid="stVerticalBlock"] {{
         background: transparent !important;
     }}
 
