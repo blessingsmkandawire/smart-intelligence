@@ -345,20 +345,9 @@ st.markdown(f"""
         100% {{ transform: scale(0.9); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
     }}
 
-    /* Dark Code & IoC List Containers */
-    div[data-testid="stCodeBlock"], .stCodeBlock, .stCodeBlock pre, .stCodeBlock code, div[data-testid="stCodeBlock"] > div {{
-        background-color: #030712 !important;
-        color: #38bdf8 !important;
-        border: 1.5px solid {border_color} !important;
-        border-radius: 10px !important;
-        box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(56, 189, 248, 0.25) !important;
-    }}
-    div[data-testid="stCodeBlock"] code span {{
-        color: #f1f5f9 !important;
-    }}
-
+    /* High Visibility IoC & Playbook Code Cards */
     .ioc-box {{
-        background: rgba(3, 7, 18, 0.9);
+        background: rgba(3, 7, 18, 0.95);
         border: 1px solid {border_color};
         border-left: 4px solid #00ffcc;
         border-radius: 8px;
@@ -367,6 +356,20 @@ st.markdown(f"""
         font-family: 'Courier New', monospace;
         color: #38bdf8;
         box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
+    }}
+
+    .playbook-box {{
+        background: #020617 !important;
+        color: #38bdf8 !important;
+        border: 1.5px solid {border_color} !important;
+        border-radius: 10px !important;
+        padding: 16px !important;
+        font-family: 'Courier New', Consolas, monospace !important;
+        font-size: 0.92rem !important;
+        white-space: pre-wrap !important;
+        word-break: break-all !important;
+        box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(56, 189, 248, 0.25) !important;
+        margin-top: 10px;
     }}
 
     .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
@@ -951,13 +954,13 @@ if st.button(t["btn_process"], type="primary"):
                 ])
 
                 with pb_tab1:
-                    st.code(playbooks["endpoint"], language="powershell")
+                    st.markdown(f'<pre class="playbook-box">{playbooks["endpoint"]}</pre>', unsafe_allow_html=True)
                 with pb_tab2:
-                    st.code(playbooks["network"], language="bash")
+                    st.markdown(f'<pre class="playbook-box">{playbooks["network"]}</pre>', unsafe_allow_html=True)
                 with pb_tab3:
-                    st.code(playbooks["identity"], language="powershell")
+                    st.markdown(f'<pre class="playbook-box">{playbooks["identity"]}</pre>', unsafe_allow_html=True)
                 with pb_tab4:
-                    st.code(playbooks["siem"], language="sql")
+                    st.markdown(f'<pre class="playbook-box">{playbooks["siem"]}</pre>', unsafe_allow_html=True)
 
             with soc_tab4:
                 st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
