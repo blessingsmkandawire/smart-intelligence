@@ -6,7 +6,11 @@ from datetime import datetime
 import pandas as pd
 import altair as alt
 import requests
-import base64
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 
 # 1. SESSION STATE FOR THEME, SIDEBAR, & CHAT
 if "sidebar_state" not in st.session_state:
@@ -23,7 +27,7 @@ if "voice_mode" not in st.session_state:
 
 if "help_chat_history" not in st.session_state:
     st.session_state.help_chat_history = [
-        {"role": "assistant", "content": "👋 **Hello! I'm your Gemini CTI Copilot.** Ask me anything about your threat pipeline, security workflows, or click a quick prompt below!"}
+        {"role": "assistant", "content": "👋 **Hello! I'm your Gemini CTI Copilot.** Ask me anything about your threat pipeline or security workflows!"}
     ]
 
 # PAGE CONFIGURATION
@@ -87,7 +91,7 @@ theme_choice = st.sidebar.selectbox(
     on_change=on_theme_change
 )
 
-# Organized Dropdown / Expander for Control Panel Options & API Integrations
+# Organized Dropdown / Expander for Control Panel Options
 with st.sidebar.expander("🛠️ Advanced Platform & API Settings", expanded=False):
     enable_live_enrichment = st.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
     defang_iocs = st.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)")
@@ -100,7 +104,7 @@ if st.sidebar.button("❌ Hide Control Panel"):
     st.session_state.sidebar_state = "collapsed"
     st.rerun()
 
-# Dynamic Theme Variables & Copilot Adaptive Theme Colors
+# Dynamic Theme Variables
 if theme_choice == "Cyberpunk Neon Mode":
     bg_color_solid = "#030208"
     bg_gradient = "radial-gradient(circle at 50% 10%, #2a0845 0%, #030208 85%)"
@@ -127,7 +131,7 @@ elif theme_choice == "Clean Light Mode":
     copilot_text = "#0f172a"
     copilot_bubble_user = "#0284c7"
     copilot_bubble_assistant = "#f1f5f9"
-else:  # Dark SOC Theme (Default Glowing)
+else:  # Dark SOC Theme
     bg_color_solid = "#040714"
     bg_gradient = "radial-gradient(circle at 50% 10%, #0d2147 0%, #040714 90%)"
     card_bg = "rgba(10, 18, 36, 0.82)"
@@ -141,7 +145,7 @@ else:  # Dark SOC Theme (Default Glowing)
     copilot_bubble_user = "#38bdf8"
     copilot_bubble_assistant = "#101d38"
 
-# 3. LIVE GLOWING ANIMATED HTML5 CANVAS BACKGROUND INJECTION
+# 3. LIVE GLOWING ANIMATED BACKGROUND INJECTION
 st.components.v1.html(f"""
     <canvas id="cyberCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1;"></canvas>
     <script>
@@ -192,7 +196,7 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
-# 4. CSS STYLING & PROFESSIONAL SOC DASHBOARD & ADAPTIVE COPILOT
+# 4. CSS STYLING WITH DROPDOWN FIX
 st.markdown(f"""
     <style>
     .stApp {{
@@ -205,14 +209,24 @@ st.markdown(f"""
         background: transparent !important;
     }}
 
+    /* SIDEBAR DROPDOWN & OVERFLOW FIX */
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #060b18 0%, #030611 100%) !important;
         border-right: 2px solid {border_color} !important;
         box-shadow: 8px 0px 35px rgba(56, 189, 248, 0.3) !important;
-        z-index: 100;
+        z-index: 999999 !important;
         padding-top: 10px;
+        overflow: visible !important;
     }}
     
+    section[data-testid="stSidebar"] [data-baseweb="popover"], 
+    section[data-testid="stSidebar"] [data-baseweb="menu"], 
+    div[data-baseweb="select"] ul {{
+        z-index: 9999999 !important;
+        background-color: #060d1c !important;
+        border: 1.5px solid {border_color} !important;
+    }}
+
     section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h4 {{
         font-family: 'Inter', system-ui, sans-serif !important;
         letter-spacing: 0.1em !important;
@@ -258,32 +272,7 @@ st.markdown(f"""
         box-shadow: {glow_shadow} !important;
     }}
 
-    /* SECTOR 05 SEGMENT IDENTIFIER BANNER */
-    .deliverable-sector-banner {{
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: linear-gradient(90deg, rgba(56, 189, 248, 0.2) 0%, rgba(0, 255, 204, 0.15) 100%);
-        border: 1.5px solid {border_color};
-        border-left: 6px solid #00ffcc;
-        padding: 10px 20px;
-        border-radius: 12px;
-        margin-top: 20px;
-        margin-bottom: 12px;
-        box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
-    }}
-
-    .deliverable-sector-tag {{
-        background: #00ffcc;
-        color: #030712;
-        font-weight: 900;
-        padding: 4px 12px;
-        border-radius: 6px;
-        font-size: 0.82rem;
-        letter-spacing: 0.1em;
-    }}
-
-    /* ELITE SOC PROFESSIONAL LAYER 5 DELIVERABLE DASHBOARD HERO */
+    /* ELITE SOC PROFESSIONAL LAYER 5 DASHBOARD HERO */
     .soc-dashboard-hero {{
         background: linear-gradient(135deg, rgba(11, 19, 43, 0.95) 0%, rgba(4, 9, 22, 0.98) 100%) !important;
         border: 2px solid {border_color} !important;
@@ -291,6 +280,7 @@ st.markdown(f"""
         border-radius: 20px !important;
         padding: 32px !important;
         box-shadow: 0 0 40px rgba(56, 189, 248, 0.35), inset 0 0 20px rgba(56, 189, 248, 0.1) !important;
+        margin-top: 15px !important;
         margin-bottom: 40px !important;
     }}
 
@@ -406,18 +396,13 @@ def enrich_ip_data(ip_list, vt_key):
         try:
             res = requests.get(f"http://ip-api.com/json/{ip}", timeout=3).json()
             if res.get("status") == "success":
-                org_info = res.get('org', 'Unknown Org')
-                country = res.get('country', 'Unknown')
-                isp = res.get('isp')
-                results.append(f"IP {ip}: {org_info} ({country}) - ISP: {isp}")
+                results.append(f"IP {ip}: {res.get('org', 'Unknown Org')} ({res.get('country', 'Unknown')}) - ISP: {res.get('isp')}")
         except Exception:
             pass
             
-    # Optional VirusTotal integration check if key provided
     if vt_key and ip_list:
         try:
             headers = {"x-apikey": vt_key}
-            # Query first IP as a sample check on VT if needed
             sample_ip = ip_list[0].replace('[.]', '.')
             vt_res = requests.get(f"https://www.virustotal.com/api/v3/ip_addresses/{sample_ip}", headers=headers, timeout=3)
             if vt_res.status_code == 200:
@@ -451,24 +436,115 @@ def generate_yara_rule(target_entity, iocs):
         any of them
 }}"""
 
-# CONTEXT-AWARE VERSATILE COPILOT REASONING ASSISTANT
+# GENERATE PDF REPORT USING REPORTLAB
+def generate_pdf_report(target_entity, timeframe, intel_goal, risk_level, accuracy_score, iocs, ttps):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+    story = []
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        'DocTitle',
+        parent=styles['Heading1'],
+        fontSize=20,
+        textColor=colors.HexColor('#0284c7'),
+        alignment=1,
+        spaceAfter=15
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'DocSubtitle',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.HexColor('#475569'),
+        alignment=1,
+        spaceAfter=20
+    )
+
+    heading2 = ParagraphStyle(
+        'SectionHeading',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.HexColor('#0f172a'),
+        spaceBefore=12,
+        spaceAfter=8
+    )
+
+    body_style = ParagraphStyle(
+        'BodyDark',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.HexColor('#334155'),
+        spaceAfter=6
+    )
+
+    story.append(Paragraph("<b>SMART INTELLIGENCE | EXECUTIVE THREAT REPORT</b>", title_style))
+    story.append(Paragraph(f"Generated on {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')} | Author: blessingsmkandawire", subtitle_style))
+    story.append(Spacer(1, 10))
+
+    meta_data = [
+        [Paragraph("<b>Target Scope:</b>", body_style), Paragraph(target_entity or "Global Infrastructure", body_style)],
+        [Paragraph("<b>Intelligence Goal:</b>", body_style), Paragraph(intel_goal or "Threat Analysis", body_style)],
+        [Paragraph("<b>Timeframe:</b>", body_style), Paragraph(timeframe, body_style)],
+        [Paragraph("<b>Risk Rating:</b>", body_style), Paragraph(f"<font color='red'><b>{risk_level}</b></font>", body_style)],
+        [Paragraph("<b>Confidence Score:</b>", body_style), Paragraph(f"{accuracy_score}%", body_style)]
+    ]
+    t_meta = Table(meta_data, colWidths=[150, 380])
+    t_meta.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f8fafc')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#cbd5e1')),
+        ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#e2e8f0')),
+        ('PADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(t_meta)
+    story.append(Spacer(1, 15))
+
+    story.append(Paragraph("<b>Indicators of Compromise (IoC) Summary</b>", heading2))
+    total_iocs = sum(len(v) for v in iocs.values())
+    
+    ioc_data = [
+        ["Indicator Type", "Extracted Count", "Sample Indicators"],
+        ["IPv4 Addresses", str(len(iocs.get("IPv4", []))), ", ".join(iocs.get("IPv4", [])[:2]) or "None"],
+        ["Domains", str(len(iocs.get("Domains", []))), ", ".join(iocs.get("Domains", [])[:2]) or "None"],
+        ["Hashes (SHA256/MD5)", str(len(iocs.get("SHA256", [])) + len(iocs.get("MD5", []))), "Cryptographic Signatures Flagged"],
+        ["CVE Vulnerabilities", str(len(iocs.get("CVE", []))), ", ".join(iocs.get("CVE", [])) or "None"]
+    ]
+    
+    t_ioc = Table(ioc_data, colWidths=[140, 110, 280])
+    t_ioc.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0284c7')),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#94a3b8')),
+        ('PADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(t_ioc)
+    story.append(Spacer(1, 15))
+
+    story.append(Paragraph("<b>MITRE ATT&CK Tactics Mapped</b>", heading2))
+    if ttps:
+        for ttp in ttps:
+            story.append(Paragraph(f"• {ttp}", body_style))
+    else:
+        story.append(Paragraph("No direct high-risk MITRE TTPs flagged in current sample stream.", body_style))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+# COPILOT REASONING ASSISTANT
 def answer_copilot_reasoning(user_prompt):
     prompt_lower = user_prompt.lower()
     
-    # SAFETY GUARDRAIL: Block harmful/hazardous instructions
     hazardous_keywords = [
         "how to make a bomb", "explosive", "build weapon", "hack into bank", 
-        "ddos attack code", "steal money", "malware tutorial to attack", 
-        "bypass password illegally", "crack password of my neighbor"
+        "ddos attack code", "steal money", "malware tutorial to attack"
     ]
     if any(k in prompt_lower for k in hazardous_keywords):
         return (
             "⚠️ **Safety Notice:** I am configured to operate as a secure, ethical assistant. "
-            "I cannot assist with hazardous activities, unauthorized cyber exploitation, or illegal actions. "
-            "However, I can provide information on defensive security practices, threat intelligence methodologies, or operational guidance!"
+            "I cannot assist with hazardous activities, unauthorized cyber exploitation, or illegal actions."
         )
 
-    # Contextual awareness check
     current_risk = st.session_state.get("computed_risk_score", 0)
     
     if "risk" in prompt_lower or "summary" in prompt_lower:
@@ -478,24 +554,23 @@ def answer_copilot_reasoning(user_prompt):
     elif "playbook" in prompt_lower or "containment" in prompt_lower:
         return "🛡️ **Playbooks:** Layer 4 & 5 provide ready-to-execute PowerShell commands, IPTables firewall rules, and SIEM KQL queries for immediate incident containment."
     
-    # General helpful Q&A
     if any(k in prompt_lower for k in ["how", "use", "guide", "start", "begin", "steps", "workflow"]):
         return (
             "Here is your step-by-step workflow for **Smart Intelligence**:\n\n"
             "1. **Layer 1:** Specify your target scope.\n"
             "2. **Layer 2:** Ingest logs, OSINT, or CSINT in the ingestion tabs.\n"
             "3. **Pipeline Execution:** Click **Execute 5-Layer Intelligence Pipeline**.\n"
-            "4. **Sector 05:** Access executive briefings, IoC tables, playbooks, and exports!"
+            "4. **Layer 5:** Access executive briefings, IoC tables, playbooks, and PDF exports!"
         )
     elif any(k in prompt_lower for k in ["hello", "hi", "hey", "who are you"]):
         return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis or security workflows today?"
     else:
         return (
             f"Regarding your query: *'{user_prompt}'*\n\n"
-            "I'm here to assist smoothly! Ingest your logs in Layer 2 or review extracted indicators in Sector 05. Let me know if you need specific technical guidance or security insights!"
+            "I'm here to assist smoothly! Ingest your logs in Layer 2 or review extracted indicators in Layer 5. Let me know if you need specific technical guidance or security insights!"
         )
 
-# ADVANCED REAL-TIME AI REASONING & THREAT NARRATIVE ENGINE (LAYER 4)
+# ADVANCED AI REASONING & THREAT NARRATIVE ENGINE
 def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
     text_lower = raw_text.lower()
     
@@ -503,7 +578,6 @@ def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
     has_credential_access = any(k in text_lower for k in ["mimikatz", "lsass", "dump", "kerberoasting", "brute force"])
     has_exfiltration = any(k in text_lower for k in ["exfil", "ftp", "sftp", "dns tunneling", "http post"])
     has_ransomware = any(k in text_lower for k in ["ransom", "encrypt", "shadowcopy", "vssadmin", ".locked"])
-    has_phishing = any(k in text_lower for k in ["phish", "spearphishing", "attachment", "macro"])
     
     risk_score = 10
     indicators_flagged = []
@@ -549,21 +623,9 @@ def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
     else:
         narrative_lines.append(" - **Telemetry Status:** Standard operational noise or clean baseline traffic. No active high-risk indicators triggered.")
 
-    narrative_lines.append("\n#### 🎯 Tactical Campaign Attribution & Reasoning:")
-    if has_ransomware:
-        narrative_lines.append("The ingested log stream indicates a high-confidence **Ransomware Deployment Cycle** combining shadow copy manipulation and file payload markers. Immediate network segmentation is advised.")
-    elif has_credential_access and has_powershell:
-        narrative_lines.append("The correlation pipeline identified an active **Post-Exploitation Lateral Movement** pattern aligning with **APT29** or **FIN7** operational frameworks.")
-    elif has_phishing:
-        narrative_lines.append("Analysis confirms initial access achieved via **Targeted Social Engineering / Phishing** infrastructure.")
-    elif len(iocs.get("IPv4", [])) > 0:
-        narrative_lines.append("Telemetry reveals active **External Reconnaissance and C2 Beaconing** polling internal host interfaces.")
-    else:
-        narrative_lines.append("Behavioral analysis indicates low-threat activity with no explicit malicious command sequences confirmed.")
-
     return "\n".join(narrative_lines), risk_score
 
-# ADVANCED REMEDIATION PLAYBOOK GENERATOR
+# REMEDIATION PLAYBOOK GENERATOR
 def generate_remediation_playbooks(iocs, ttps):
     ips = iocs.get("IPv4", [])
     domains = iocs.get("Domains", [])
@@ -574,31 +636,23 @@ def generate_remediation_playbooks(iocs, ttps):
         for h in hashes:
             endpoint_lines.append(f"Get-Process | Where-Object {{ $_.Path -like '*{h[:8]}*' }} | Stop-Process -Force")
     endpoint_lines.append("Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True")
-    endpoint_lines.append("# Linux Host Isolation (IPTables)")
-    endpoint_lines.append("sudo iptables -P INPUT DROP; sudo iptables -P OUTPUT DROP; sudo iptables -P FORWARD DROP")
 
     network_lines = ["# Active Perimeter Firewall Rules (C2 Blocklist)"]
     for ip in ips:
         network_lines.append(f"netsh advfirewall firewall add rule name='Block C2 {ip}' dir=in action=block remoteip={ip}")
-        network_lines.append(f"sudo iptables -A INPUT -s {ip} -j DROP")
     for d in domains:
         network_lines.append(f"# DNS RPZ / Sinkhole entry: {d} -> 0.0.0.0")
 
     identity_lines = [
         "# Active Directory / Azure AD Revocation & Containment",
         "Revoke-AzureADUserAllRefreshToken -ObjectId <Target_User_GUID>",
-        "Set-ADUser -Identity <Target_User> -Enabled $false",
-        "# Force Kerberos Ticket Reset (KBTGT)",
-        "Update-KbtgtAccountPassword"
+        "Set-ADUser -Identity <Target_User> -Enabled $false"
     ]
 
     siem_lines = ["// KQL Query (Microsoft Sentinel / Defender)"]
     if ips:
         ip_str = '", "'.join(ips)
         siem_lines.append(f'DeviceNetworkEvents | where RemoteIP in ("{ip_str}")')
-    if hashes:
-        hash_str = '", "'.join(hashes)
-        siem_lines.append(f'DeviceProcessEvents | where SHA256 in ("{hash_str}") or MD5 in ("{hash_str}")')
 
     def render_playbook_html(lines):
         html_output = ['<div class="playbook-container">']
@@ -618,7 +672,7 @@ def generate_remediation_playbooks(iocs, ttps):
         "siem": render_playbook_html(siem_lines)
     }
 
-# FORMAL EXECUTIVE TEXT REPORT GENERATOR
+# EXECUTIVE TEXT REPORT GENERATOR
 def generate_executive_text_report(target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs, ttps, live_enrichment):
     now_utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
     total_iocs = sum(len(v) for v in iocs.values())
@@ -630,39 +684,17 @@ def generate_executive_text_report(target_entity, timeframe, intel_goal, risk_le
         f"DATE OF INCIDENT BRIEFING : {now_utc}",
         f"TARGET ENTITY / SCOPE     : {target_entity if target_entity else 'Global / Corporate Network'}",
         f"ANALYSIS TIMEFRAME        : {timeframe}",
-        f"STRATEGIC INTEL GOAL      : {intel_goal if intel_goal else 'Threat Landscape Assessment'}",
         f"OVERALL THREAT RISK LEVEL : {risk_level}",
         f"CONFIDENCE RATING         : {accuracy_score}%",
-        f"DATA SOURCES EVALUATED    : {', '.join(sources_used) if sources_used else 'Multi-source Telemetry'}",
         "================================================================================",
         "\n1. EXECUTIVE SUMMARY & THREAT OVERVIEW",
         "--------------------------------------------------------------------------------",
         f"Smart Intelligence has executed a 5-layer correlation analysis for {target_entity or 'the target infrastructure'}.",
-        f"A total of {total_iocs} high-fidelity Indicators of Compromise (IoCs) and {len(ttps)} MITRE ATT&CK tactics",
-        "were identified across ingested telemetry logs, threat feeds, and security intelligence.",
+        f"A total of {total_iocs} high-fidelity Indicators of Compromise (IoCs) and {len(ttps)} MITRE ATT&CK tactics were identified.",
         "================================================================================",
         "Report Compiled by Smart Intelligence CTI Engine | Author: blessingsmkandawire"
     ]
     return "\n".join(report)
-
-def generate_html_report(target_entity, risk_level, accuracy_score, iocs, ttps):
-    total_iocs = sum(len(v) for v in iocs.values())
-    return f"""
-    <html>
-    <head><style>body{{font-family:Arial,sans-serif;padding:20px;background:#040714;color:#f8fafc;}} h1{{color:#38bdf8;}}</style></head>
-    <body>
-        <h1>Smart Intelligence - Executive Threat Report</h1>
-        <p><b>Target:</b> {target_entity or 'Global Network'}</p>
-        <p><b>Risk Rating:</b> {risk_level} | <b>Confidence:</b> {accuracy_score}%</p>
-        <p><b>Total IoCs:</b> {total_iocs} | <b>TTPs Mapped:</b> {len(ttps)}</p>
-        <hr>
-        <h3>Extracted Indicators Summary</h3>
-        <p><b>IPv4 Count:</b> {len(iocs.get('IPv4', []))}</p>
-        <p><b>Hashes Count:</b> {len(iocs.get('SHA256', [])) + len(iocs.get('MD5', []))}</p>
-        <p><b>CVEs Count:</b> {len(iocs.get('CVE', []))}</p>
-    </body>
-    </html>
-    """
 
 # CORE PROCESSING FUNCTIONS
 def extract_iocs(raw_text):
@@ -759,7 +791,6 @@ with col_hdr2:
                 else:
                     st.markdown(f"<div style='background:{copilot_bubble_user}; padding:8px 12px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.88rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
 
-        # Quick Suggestion Buttons
         col_qb1, col_qb2 = st.columns(2)
         if col_qb1.button("📊 Summarize Risk", key="qb_risk"):
             reply = answer_copilot_reasoning("Summarize current threat risk")
@@ -922,22 +953,12 @@ if st.button(t["btn_process"], type="primary"):
             text_report = generate_executive_text_report(
                 target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs, ttps, live_enrichment
             )
-            html_report = generate_html_report(target_entity, risk_level, accuracy_score, iocs, ttps)
+            
+            pdf_buffer = generate_pdf_report(
+                target_entity, timeframe, intel_goal, risk_level, accuracy_score, iocs, ttps
+            )
 
             st.success("5-Layer Intelligence Pipeline Execution Complete!")
-
-            # ==========================================
-            # SECTOR 05 SEGMENT IDENTIFIER BANNER
-            # ==========================================
-            st.markdown("""
-                <div class="deliverable-sector-banner">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="deliverable-sector-tag">SECTOR 05</span>
-                        <span style="font-size: 1.1rem; font-weight: 800; letter-spacing: 0.05em;">📊 DELIVERABLE DASHBOARD & OPERATIONAL COMMAND SEGMENT</span>
-                    </div>
-                    <span style="font-size: 0.85rem; opacity: 0.8; font-weight: 700;">CONFIDENTIAL CTI EXPORTS ACTIVE</span>
-                </div>
-            """, unsafe_allow_html=True)
 
             # ==========================================
             # LAYER 5: PROFESSIONAL SOC OPERATIONAL DASHBOARD HERO
@@ -946,7 +967,6 @@ if st.button(t["btn_process"], type="primary"):
             st.markdown(f"<h2 style='color: #38bdf8; margin-bottom: 5px;'>🚀 {t['l5']}</h2>", unsafe_allow_html=True)
             st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px;'>Enterprise Operational Command Center — Real-time threat correlation, indicators, and defensive playbooks.</p>", unsafe_allow_html=True)
 
-            # Professional SOC Metrics Grid
             col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
             
             with col_m1:
@@ -968,7 +988,7 @@ if st.button(t["btn_process"], type="primary"):
 
             st.write("")
 
-            # ADVANCED SOC TABBED NAVIGATION INSIDE THE HERO DASHBOARD
+            # ADVANCED SOC TABBED NAVIGATION
             soc_tab1, soc_tab2, soc_tab3, soc_tab4 = st.tabs([
                 "📊 Telemetry & Correlation",
                 "🔍 IoC Inspector",
@@ -984,32 +1004,49 @@ if st.button(t["btn_process"], type="primary"):
                         'Indicator Category': list(iocs.keys()),
                         'Count': [len(v) for v in iocs.values()]
                     })
-                    bar_chart = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4).encode(
-                        x=alt.X('Indicator Category:N', sort=None, axis=alt.Axis(labelAngle=0)),
-                        y=alt.Y('Count:Q', axis=alt.Axis(tickMinStep=1)),
-                        color=alt.Color('Indicator Category:N', scale=alt.Scale(scheme='dark2'), legend=None),
+                    bar_chart = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
+                        x=alt.X('Indicator Category:N', sort=None, title="IoC Type", axis=alt.Axis(labelAngle=0)),
+                        y=alt.Y('Count:Q', title="Detected Count", axis=alt.Axis(tickMinStep=1)),
+                        color=alt.Color('Indicator Category:N', scale=alt.Scale(scheme='tableau10'), legend=None),
                         tooltip=['Indicator Category', 'Count']
-                    ).properties(height=260).configure_axis(
+                    ).properties(height=280).configure_axis(
                         gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
                     ).configure_view(strokeWidth=0)
                     st.altair_chart(bar_chart, use_container_width=True)
 
                 with col_graph2:
-                    st.subheader("🕸️ Layer 3 Threat Correlation Graph")
+                    st.subheader("🕸️ Layer 3 Interactive Threat Correlation Graph")
                     graph_nodes = []
+                    target_label = target_entity or "Target Scope"
+                    
                     for cat, items in iocs.items():
-                        for item in items[:2]:
-                            graph_nodes.append({"Source": target_entity or "Target Scope", "Indicator": item, "Type": cat})
+                        for item in items[:4]:
+                            graph_nodes.append({
+                                "Target_Entity": target_label,
+                                "Indicator": str(item),
+                                "Category": cat,
+                                "Risk_Weight": 85 if cat in ["IPv4", "SHA256"] else 45
+                            })
                     
                     if graph_nodes:
                         gdf = pd.DataFrame(graph_nodes)
-                        graph_chart = alt.Chart(gdf).mark_circle(size=200).encode(
-                            x='Source:N',
-                            y='Indicator:N',
-                            color='Type:N',
-                            tooltip=['Source', 'Indicator', 'Type']
-                        ).properties(height=260)
-                        st.altair_chart(graph_chart, use_container_width=True)
+                        
+                        base = alt.Chart(gdf).encode(
+                            x=alt.X('Target_Entity:N', title="Target Environment Scope"),
+                            y=alt.Y('Indicator:N', title="Extracted Threat Artifacts"),
+                            color=alt.Color('Category:N', scale=alt.Scale(scheme='set1'), title="Indicator Class"),
+                            size=alt.Size('Risk_Weight:Q', scale=alt.Scale(range=[150, 400]), legend=None),
+                            tooltip=['Target_Entity', 'Indicator', 'Category', 'Risk_Weight']
+                        )
+                        
+                        points = base.mark_circle(opacity=0.85, stroke='#00ffcc', strokeWidth=1.5)
+                        rules = base.mark_rule(strokeDash=[4, 4], opacity=0.4, color='#38bdf8')
+                        
+                        correlation_chart = (rules + points).properties(height=280).configure_axis(
+                            gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
+                        ).configure_view(strokeWidth=0)
+                        
+                        st.altair_chart(correlation_chart, use_container_width=True)
                     else:
                         st.info("Insufficient IoC nodes to render correlation graph.")
 
@@ -1081,7 +1118,7 @@ if st.button(t["btn_process"], type="primary"):
                 
                 with dl_col1:
                     st.download_button(
-                        label="📄 Download Executive (.txt)",
+                        label="📄 Download Text Brief (.txt)",
                         data=text_report,
                         file_name="executive_threat_briefing.txt",
                         mime="text/plain"
@@ -1105,10 +1142,10 @@ if st.button(t["btn_process"], type="primary"):
 
                 with dl_col4:
                     st.download_button(
-                        label="🌐 Download HTML Report (.html)",
-                        data=html_report,
-                        file_name="executive_threat_report.html",
-                        mime="text/html"
+                        label="📕 Download Executive PDF (.pdf)",
+                        data=pdf_buffer,
+                        file_name="executive_threat_report.pdf",
+                        mime="application/pdf"
                     )
 
                 st.divider()
