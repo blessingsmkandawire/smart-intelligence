@@ -83,68 +83,102 @@ if st.sidebar.button("❌ Hide Control Panel"):
     st.session_state.sidebar_state = "collapsed"
     st.rerun()
 
-# Dynamic Theme & Ultra-Glowing Cyber Background CSS
+# Dynamic Theme Variables
 if theme_choice == "Cyberpunk Neon Mode":
     bg_color_solid = "#030208"
     bg_gradient = "radial-gradient(circle at 50% 10%, #2a0845 0%, #030208 85%)"
-    card_bg = "rgba(18, 15, 36, 0.85)"
+    card_bg = "rgba(18, 15, 36, 0.82)"
     text_color = "#00ffcc"
     accent_color = "#ff0055"
     border_color = "#00ffcc"
     glow_shadow = "0 0 20px rgba(0, 255, 204, 0.5), 0 0 40px rgba(255, 0, 85, 0.3)"
+    matrix_glow_color = "#00ffcc"
 elif theme_choice == "Clean Light Mode":
     bg_color_solid = "#f1f5f9"
     bg_gradient = "linear-gradient(135deg, #e0f2fe 0%, #cbd5e1 100%)"
-    card_bg = "rgba(255, 255, 255, 0.95)"
+    card_bg = "rgba(255, 255, 255, 0.92)"
     text_color = "#0f172a"
     accent_color = "#0284c7"
     border_color = "#0284c7"
     glow_shadow = "0 0 20px rgba(2, 132, 199, 0.3)"
+    matrix_glow_color = "#0284c7"
 else:  # Dark SOC Theme (Default Glowing)
     bg_color_solid = "#040714"
     bg_gradient = "radial-gradient(circle at 50% 10%, #0d2147 0%, #040714 90%)"
-    card_bg = "rgba(10, 18, 36, 0.85)"
+    card_bg = "rgba(10, 18, 36, 0.82)"
     text_color = "#f8fafc"
     accent_color = "#38bdf8"
     border_color = "#38bdf8"
     glow_shadow = "0 0 18px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.15)"
+    matrix_glow_color = "#38bdf8"
 
-symbols = "🛡️ 🔒 🔑 ☣️ 👨‍💻 👁️ 🌐 📡 🛰️ 📱 ⚡ 💻"
+# 3. LIVE GLOWING ANIMATED HTML5 CANVAS BACKGROUND INJECTION
+st.components.v1.html(f"""
+    <canvas id="cyberCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1;"></canvas>
+    <script>
+    const canvas = document.getElementById('cyberCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {{
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }}
+    resize();
+    window.addEventListener('resize', resize);
+
+    const chars = '01 sudo nmap ssh port 80 443 22 cti ioc cve mitre 0xFF APT29 root payload {{}} <> //';
+    const charArr = chars.split(' ');
+    const fontSize = 14;
+    const columns = Math.floor(window.innerWidth / fontSize);
+    const drops = [];
+
+    for (let i = 0; i < columns; i++) {{
+        drops[i] = Math.random() * -100;
+    }}
+
+    function draw() {{
+        ctx.fillStyle = 'rgba(4, 7, 20, 0.08)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '{matrix_glow_color}';
+        ctx.font = fontSize + 'px monospace';
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '{matrix_glow_color}';
+
+        for (let i = 0; i < drops.length; i++) {{
+            const text = charArr[Math.floor(Math.random() * charArr.length)];
+            const x = i * fontSize;
+            const y = drops[i] * fontSize;
+
+            ctx.fillText(text, x, y);
+
+            if (y > canvas.height && Math.random() > 0.975) {{
+                drops[i] = 0;
+            }}
+            drops[i]++;
+        }}
+    }}
+
+    setInterval(draw, 45);
+    </script>
+""", height=0)
+
+# 4. CSS STYLING WITH TRANSPARENT CONTAINERS
 st.markdown(f"""
     <style>
-    /* 1. Full Page Immersive Scrolling Background */
+    /* Full Page Immersive Styling */
     .stApp {{
         background-color: {bg_color_solid} !important;
         background-image: {bg_gradient} !important;
         background-attachment: fixed !important;
     }}
-    
-    /* 2. Floating Cyber Visuals Grid across the ENTIRE page height */
-    .stApp::before {{
-        content: '{symbols * 35}';
-        position: fixed;
-        top: 0; left: 0;
-        width: 100vw; height: 100vh;
-        display: grid;
-        grid-template-columns: repeat(12, 1fr);
-        grid-template-rows: repeat(12, 1fr);
-        font-size: 28px;
-        opacity: 0.18;
-        justify-items: center; align-items: center;
-        overflow: hidden;
-        pointer-events: none;
-        z-index: 0;
-        letter-spacing: 30px;
-        line-height: 2.5;
-        filter: drop-shadow(0 0 12px {accent_color});
-    }}
 
-    /* 3. Transparent Main Streamlit Containers */
+    /* Transparent Main Streamlit Containers */
     .block-container, section.main, .stMainBlockContainer, [data-testid="stMain"], [data-testid="stVerticalBlock"] {{
         background: transparent !important;
     }}
 
-    /* 4. HIGH-TECH BEAUTIFIED CONTROL PANEL (SIDEBAR) */
+    /* High-Tech Control Panel Sidebar */
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #060b18 0%, #030611 100%) !important;
         border-right: 2px solid {border_color} !important;
@@ -153,14 +187,12 @@ st.markdown(f"""
         padding-top: 10px;
     }}
     
-    /* Control Panel Section Header Glow */
     section[data-testid="stSidebar"] h2 {{
         font-family: 'Inter', system-ui, sans-serif !important;
         letter-spacing: 0.1em !important;
         text-shadow: 0 0 15px {accent_color}, 0 0 25px rgba(56, 189, 248, 0.6) !important;
     }}
 
-    /* Sidebar Labels & Text Elements */
     section[data-testid="stSidebar"] label, 
     section[data-testid="stSidebar"] p, 
     section[data-testid="stSidebar"] span {{
@@ -169,7 +201,6 @@ st.markdown(f"""
         letter-spacing: 0.03em !important;
     }}
 
-    /* Glassmorphism Wrapper Cards for Sidebar Dropdowns & Checkboxes */
     section[data-testid="stSidebar"] div[data-baseweb="select"], 
     section[data-testid="stSidebar"] div[data-testid="stCheckbox"] {{
         background: rgba(10, 20, 42, 0.8) !important;
@@ -188,7 +219,6 @@ st.markdown(f"""
         box-shadow: 0 0 20px #00ffcc !important;
     }}
 
-    /* Sidebar Hide/Action Buttons */
     section[data-testid="stSidebar"] .stButton>button {{
         background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
         border: 1.5px solid {border_color} !important;
@@ -204,7 +234,7 @@ st.markdown(f"""
         color: #ffffff !important;
     }}
 
-    /* 5. Typography & Headers */
+    /* Typography & Headers */
     html, body, p, span, div, label, .stMarkdown, .stText {{
         color: {text_color} !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -222,7 +252,7 @@ st.markdown(f"""
         text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
     }}
 
-    /* 6. High-Glow Main Inputs, Dropdowns, and Textareas */
+    /* High-Glow Main Inputs, Dropdowns, and Textareas */
     textarea, input, select, div[data-baseweb="select"] > div {{
         color: {text_color} !important;
         background-color: rgba(6, 13, 28, 0.9) !important;
@@ -237,7 +267,7 @@ st.markdown(f"""
         transform: translateY(-1px);
     }}
 
-    /* 7. Ultra-Glowing Glassmorphism Cards & Tabs */
+    /* Ultra-Glowing Glassmorphism Cards & Tabs */
     div[data-testid="stMetric"], .stExpander, div.stTabs {{
         background: {card_bg} !important;
         backdrop-filter: blur(20px) saturate(200%);
@@ -259,7 +289,7 @@ st.markdown(f"""
         text-shadow: 0 0 15px {accent_color};
     }}
 
-    /* 8. Pulsing Electric Trigger Button */
+    /* Pulsing Electric Trigger Button */
     .stButton>button {{
         width: 100%;
         font-weight: 800;
@@ -285,7 +315,7 @@ st.markdown(f"""
         100% {{ box-shadow: 0 0 35px rgba(56, 189, 248, 0.8), 0 0 55px rgba(0, 255, 204, 0.6); }}
     }}
 
-    /* 9. Live HUD Status Badge & Dot */
+    /* Live HUD Status Badge & Dot */
     .live-hud-badge {{
         display: inline-flex;
         align-items: center;
@@ -315,16 +345,28 @@ st.markdown(f"""
         100% {{ transform: scale(0.9); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
     }}
 
-    /* 10. HIGH-VISIBILITY CODE BLOCKS (PLAYBOOK ARMORY FIX) */
-    div[data-testid="stCodeBlock"], .stCodeBlock pre, .stCodeBlock code, div[data-testid="stCodeBlock"] > div {{
+    /* Dark Code & IoC List Containers */
+    div[data-testid="stCodeBlock"], .stCodeBlock, .stCodeBlock pre, .stCodeBlock code, div[data-testid="stCodeBlock"] > div {{
         background-color: #030712 !important;
         color: #38bdf8 !important;
         border: 1.5px solid {border_color} !important;
         border-radius: 10px !important;
-        box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8), 0 0 15px rgba(56, 189, 248, 0.2) !important;
+        box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(56, 189, 248, 0.25) !important;
     }}
     div[data-testid="stCodeBlock"] code span {{
         color: #f1f5f9 !important;
+    }}
+
+    .ioc-box {{
+        background: rgba(3, 7, 18, 0.9);
+        border: 1px solid {border_color};
+        border-left: 4px solid #00ffcc;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 8px;
+        font-family: 'Courier New', monospace;
+        color: #38bdf8;
+        box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
     }}
 
     .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
@@ -871,15 +913,24 @@ if st.button(t["btn_process"], type="primary"):
                         return lst
                     return [item for item in lst if filter_term.lower() in str(item).lower()]
 
+                def render_ioc_block(title, items):
+                    filtered = filter_list(items)
+                    st.markdown(f"**{title}**")
+                    if filtered:
+                        for val in filtered:
+                            st.markdown(f'<div class="ioc-box">⚡ {val}</div>', unsafe_allow_html=True)
+                    else:
+                        st.caption("None detected")
+
                 with ioc_col1:
-                    st.write("**IPv4 Addresses:**", filter_list(iocs["IPv4"]) if filter_list(iocs["IPv4"]) else "None detected")
-                    st.write("**Domains:**", filter_list(iocs["Domains"]) if filter_list(iocs["Domains"]) else "None detected")
-                    st.write("**URLs:**", filter_list(iocs["URLs"]) if filter_list(iocs["URLs"]) else "None detected")
+                    render_ioc_block("IPv4 Addresses:", iocs["IPv4"])
+                    render_ioc_block("Domains:", iocs["Domains"])
+                    render_ioc_block("URLs:", iocs["URLs"])
                 
                 with ioc_col2:
-                    st.write("**SHA-256 Hashes:**", filter_list(iocs["SHA256"]) if filter_list(iocs["SHA256"]) else "None detected")
-                    st.write("**MD5 Hashes:**", filter_list(iocs["MD5"]) if filter_list(iocs["MD5"]) else "None detected")
-                    st.write("**CVE Vulnerabilities:**", filter_list(iocs["CVE"]) if filter_list(iocs["CVE"]) else "None detected")
+                    render_ioc_block("SHA-256 Hashes:", iocs["SHA256"])
+                    render_ioc_block("MD5 Hashes:", iocs["MD5"])
+                    render_ioc_block("CVE Vulnerabilities:", iocs["CVE"])
 
                 st.subheader("🎯 Layer 3 MITRE ATT&CK TTP Mapping")
                 if ttps:
