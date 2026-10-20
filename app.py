@@ -7,7 +7,7 @@ import pandas as pd
 import altair as alt
 import requests
 
-# 1. SESSION STATE FOR SIDEBAR CONTROL & GEMINI REASONING CHAT
+# 1. SESSION STATE FOR THEME, SIDEBAR, & CHAT
 if "sidebar_state" not in st.session_state:
     st.session_state.sidebar_state = "expanded"
 
@@ -30,7 +30,7 @@ st.set_page_config(
     initial_sidebar_state=st.session_state.sidebar_state
 )
 
-# 2. HIGH-VISIBILITY CONTROL PANEL (SIDEBAR WITH DROPDOWN EXPANDER)
+# 2. HIGH-VISIBILITY CONTROL PANEL (SIDEBAR)
 st.sidebar.markdown("<h2 style='color: #38bdf8; text-align: center; border-bottom: 2px solid #38bdf8; padding-bottom: 8px;'>⚙️ CONTROL PANEL</h2>", unsafe_allow_html=True)
 
 LANGUAGES = {
@@ -73,8 +73,15 @@ LANGUAGES = {
 selected_lang = st.sidebar.selectbox("🌐 Interface Language", list(LANGUAGES.keys()))
 t = LANGUAGES[selected_lang]
 
-# Theme Switcher
-theme_choice = st.sidebar.selectbox("🎨 UI Visual Mode", ["Dark SOC Theme", "Cyberpunk Neon Mode", "Clean Light Mode"])
+# Theme Switcher with instant rerun callback
+def on_theme_change():
+    pass
+
+theme_choice = st.sidebar.selectbox(
+    "🎨 UI Visual Mode", 
+    ["Dark SOC Theme", "Cyberpunk Neon Mode", "Clean Light Mode"],
+    on_change=on_theme_change
+)
 
 # Organized Dropdown / Expander for Control Panel Options
 with st.sidebar.expander("🛠️ Advanced Platform Settings", expanded=False):
@@ -643,7 +650,7 @@ def generate_stix_bundle(target_entity, iocs):
             })
     return {"type": "bundle", "id": bundle_id, "objects": objects}
 
-# 4. HEADER BANNER & PROFESSIONAL TOP-RIGHT ADAPTIVE COPILOT POPOVER
+# 4. HEADER BANNER & PROFESSIONAL TOP-RIGHT ADAPTIVE COPILOT POPOVER WITH CLEAN Q&A STATE
 st.image("https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcROn-mrBQe5btdrktqpXydcOjv7g-kthMpnU2tXpevypi1IkEe_ZHPFLaRy5VxKY4WNtuds3KQnZXLLx8Y", use_container_width=True)
 
 col_hdr1, col_hdr2 = st.columns([3, 1])
@@ -653,7 +660,6 @@ with col_hdr1:
 
 with col_hdr2:
     st.write("")
-    # Professional Native Top-Right CTI Copilot with Adaptive Theme Styling
     with st.popover("🤖 CTI Copilot & Live AI", help="Click to open live CTI assistant"):
         st.markdown(f"""
             <div style="background-color: {copilot_bg}; color: {copilot_text}; padding: 4px; border-radius: 8px;">
@@ -670,25 +676,29 @@ with col_hdr2:
                 else:
                     st.markdown(f"<div style='background:{copilot_bubble_user}; padding:8px 12px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.88rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
 
-        user_input = st.text_input("Ask copilot...", key="top_popover_chat_input", label_visibility="collapsed", placeholder="Ask a question...")
-        if user_input:
-            st.session_state.help_chat_history.append({"role": "user", "content": user_input})
-            reply = answer_copilot_reasoning(user_input)
-            st.session_state.help_chat_history.append({"role": "assistant", "content": reply})
+        # Clean Form submission for single Q&A turn execution without loop duplication
+        with st.form(key="copilot_form", clear_on_submit=True):
+            user_input = st.text_input("Ask a question...", label_visibility="collapsed", placeholder="Ask a question...")
+            submit_btn = st.form_submit_button("Send")
             
-            if st.session_state.voice_mode:
-                clean_speech = reply.replace('"', '').replace('\n', ' ')
-                st.components.v1.html(f"""
-                    <script>
-                    if ('speechSynthesis' in window) {{
-                        window.speechSynthesis.cancel();
-                        var utterance = new SpeechSynthesisUtterance("{clean_speech}");
-                        utterance.rate = 1.0;
-                        window.speechSynthesis.speak(utterance);
-                    }}
-                    </script>
-                """, height=0)
-            st.rerun()
+            if submit_btn and user_input.strip():
+                st.session_state.help_chat_history.append({"role": "user", "content": user_input})
+                reply = answer_copilot_reasoning(user_input)
+                st.session_state.help_chat_history.append({"role": "assistant", "content": reply})
+                
+                if st.session_state.voice_mode:
+                    clean_speech = reply.replace('"', '').replace('\n', ' ')
+                    st.components.v1.html(f"""
+                        <script>
+                        if ('speechSynthesis' in window) {{
+                            window.speechSynthesis.cancel();
+                            var utterance = new SpeechSynthesisUtterance("{clean_speech}");
+                            utterance.rate = 1.0;
+                            window.speechSynthesis.speak(utterance);
+                        }}
+                        </script>
+                    """, height=0)
+                st.rerun()
 
     if st.session_state.sidebar_state == "collapsed":
         if st.button("🎛️ Open Control Panel"):
