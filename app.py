@@ -87,7 +87,7 @@ if st.sidebar.button("❌ Hide Control Panel"):
     st.session_state.sidebar_state = "collapsed"
     st.rerun()
 
-# Dynamic Theme Variables
+# Dynamic Theme Variables & Copilot Adaptive Theme Colors
 if theme_choice == "Cyberpunk Neon Mode":
     bg_color_solid = "#030208"
     bg_gradient = "radial-gradient(circle at 50% 10%, #2a0845 0%, #030208 85%)"
@@ -97,6 +97,10 @@ if theme_choice == "Cyberpunk Neon Mode":
     border_color = "#00ffcc"
     glow_shadow = "0 0 20px rgba(0, 255, 204, 0.5), 0 0 40px rgba(255, 0, 85, 0.3)"
     matrix_glow_color = "#00ffcc"
+    copilot_bg = "#0d0a1a"
+    copilot_text = "#00ffcc"
+    copilot_bubble_user = "#ff0055"
+    copilot_bubble_assistant = "#1e153b"
 elif theme_choice == "Clean Light Mode":
     bg_color_solid = "#f1f5f9"
     bg_gradient = "linear-gradient(135deg, #e0f2fe 0%, #cbd5e1 100%)"
@@ -106,6 +110,10 @@ elif theme_choice == "Clean Light Mode":
     border_color = "#0284c7"
     glow_shadow = "0 0 20px rgba(2, 132, 199, 0.3)"
     matrix_glow_color = "#0284c7"
+    copilot_bg = "#ffffff"
+    copilot_text = "#0f172a"
+    copilot_bubble_user = "#0284c7"
+    copilot_bubble_assistant = "#f1f5f9"
 else:  # Dark SOC Theme (Default Glowing)
     bg_color_solid = "#040714"
     bg_gradient = "radial-gradient(circle at 50% 10%, #0d2147 0%, #040714 90%)"
@@ -115,6 +123,10 @@ else:  # Dark SOC Theme (Default Glowing)
     border_color = "#38bdf8"
     glow_shadow = "0 0 18px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.15)"
     matrix_glow_color = "#38bdf8"
+    copilot_bg = "#070d1d"
+    copilot_text = "#f8fafc"
+    copilot_bubble_user = "#38bdf8"
+    copilot_bubble_assistant = "#101d38"
 
 # 3. LIVE GLOWING ANIMATED HTML5 CANVAS BACKGROUND INJECTION
 st.components.v1.html(f"""
@@ -167,7 +179,7 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
-# 4. CSS STYLING & ISOLATED LAYER 5 DELIVERABLE DASHBOARD HERO CONTAINER
+# 4. CSS STYLING & PROFESSIONAL SOC DASHBOARD & ADAPTIVE COPILOT
 st.markdown(f"""
     <style>
     .stApp {{
@@ -233,16 +245,25 @@ st.markdown(f"""
         box-shadow: {glow_shadow} !important;
     }}
 
-    /* ISOLATED ELITE LAYER 5 DELIVERABLE DASHBOARD HERO CONTAINER */
-    .layer5-isolated-dashboard {{
-        background: linear-gradient(135deg, rgba(8, 14, 32, 0.95) 0%, rgba(3, 7, 18, 0.98) 100%) !important;
-        border: 2px solid #00ffcc !important;
-        border-top: 5px solid #00ffcc !important;
-        border-radius: 18px !important;
-        padding: 28px !important;
-        box-shadow: 0 0 35px rgba(0, 255, 204, 0.35), inset 0 0 25px rgba(0, 255, 204, 0.1) !important;
+    /* ELITE SOC PROFESSIONAL LAYER 5 DELIVERABLE DASHBOARD */
+    .soc-dashboard-hero {{
+        background: linear-gradient(135deg, rgba(11, 19, 43, 0.95) 0%, rgba(4, 9, 22, 0.98) 100%) !important;
+        border: 2px solid {border_color} !important;
+        border-top: 6px solid {accent_color} !important;
+        border-radius: 20px !important;
+        padding: 32px !important;
+        box-shadow: 0 0 40px rgba(56, 189, 248, 0.35), inset 0 0 20px rgba(56, 189, 248, 0.1) !important;
         margin-top: 25px !important;
-        margin-bottom: 35px !important;
+        margin-bottom: 40px !important;
+    }}
+
+    .soc-metric-card {{
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid {border_color};
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
     }}
 
     .stButton>button {{
@@ -622,7 +643,7 @@ def generate_stix_bundle(target_entity, iocs):
             })
     return {"type": "bundle", "id": bundle_id, "objects": objects}
 
-# 4. HEADER BANNER & PROFESSIONAL TOP-RIGHT NATIVE CTI COPILOT POPOVER
+# 4. HEADER BANNER & PROFESSIONAL TOP-RIGHT ADAPTIVE COPILOT POPOVER
 st.image("https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcROn-mrBQe5btdrktqpXydcOjv7g-kthMpnU2tXpevypi1IkEe_ZHPFLaRy5VxKY4WNtuds3KQnZXLLx8Y", use_container_width=True)
 
 col_hdr1, col_hdr2 = st.columns([3, 1])
@@ -632,18 +653,22 @@ with col_hdr1:
 
 with col_hdr2:
     st.write("")
-    # Professional Native Top-Right CTI Copilot Popover
+    # Professional Native Top-Right CTI Copilot with Adaptive Theme Styling
     with st.popover("🤖 CTI Copilot & Live AI", help="Click to open live CTI assistant"):
-        st.markdown("#### 💡 Gemini CTI Copilot")
-        st.caption("Real-time reasoning assistant & workflow guide.")
+        st.markdown(f"""
+            <div style="background-color: {copilot_bg}; color: {copilot_text}; padding: 4px; border-radius: 8px;">
+                <h4 style="color: {copilot_text} !important; margin-bottom: 2px;">💡 Gemini CTI Copilot</h4>
+                <p style="color: {copilot_text} !important; font-size: 0.82rem; opacity: 0.9;">Real-time reasoning assistant & workflow guide.</p>
+            </div>
+        """, unsafe_allow_html=True)
         
         chat_box = st.container(height=280)
         with chat_box:
             for message in st.session_state.help_chat_history:
                 if message["role"] == "assistant":
-                    st.markdown(f"<div style='background:#f1f5f9; padding:6px 10px; border-radius:8px; margin-bottom:6px; color:#0f172a; font-size:0.85rem;'><b>Copilot:</b> {message['content']}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='background:{copilot_bubble_assistant}; padding:8px 12px; border-radius:8px; margin-bottom:6px; color:{copilot_text}; font-size:0.88rem;'><b>Copilot:</b> {message['content']}</div>", unsafe_allow_html=True)
                 else:
-                    st.markdown(f"<div style='background:#0284c7; padding:6px 10px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.85rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='background:{copilot_bubble_user}; padding:8px 12px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.88rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
 
         user_input = st.text_input("Ask copilot...", key="top_popover_chat_input", label_visibility="collapsed", placeholder="Ask a question...")
         if user_input:
@@ -798,18 +823,26 @@ if st.button(t["btn_process"], type="primary"):
             st.divider()
 
             # ==========================================
-            # LAYER 5: ISOLATED ELITE DELIVERABLE DASHBOARD
+            # LAYER 5: PROFESSIONAL SOC OPERATIONAL DASHBOARD
             # ==========================================
-            st.markdown('<div class="layer5-isolated-dashboard">', unsafe_allow_html=True)
-            st.header(f"🚀 {t['l5']}")
-            st.caption("Elite Operational Dashboard & Automated Threat Intelligence Deliverables")
+            st.markdown('<div class="soc-dashboard-hero">', unsafe_allow_html=True)
+            st.markdown(f"<h2 style='color: #38bdf8; margin-bottom: 5px;'>🚀 {t['l5']}</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px;'>Enterprise Operational Command Center — Real-time threat correlation, indicators, and defensive playbooks.</p>", unsafe_allow_html=True)
 
+            # Professional SOC Metrics Grid
             col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
-            col_m1.metric(t["target"], target_entity if target_entity else "Global / Unassigned")
-            col_m2.metric(t["iocs_found"], total_iocs)
-            col_m3.metric(t["ttps_mapped"], len(ttps))
-            col_m4.metric(t["risk"], f"🔴 {risk_level}" if "CRITICAL" in risk_level else f"🟡 {risk_level}" if "HIGH" in risk_level else f"🟢 {risk_level}")
-            col_m5.metric(t["confidence"], f"{accuracy_score}%")
+            
+            with col_m1:
+                st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>TARGET ENTITY</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.1rem;'>{target_entity if target_entity else 'Global'}</h3></div>", unsafe_allow_html=True)
+            with col_m2:
+                st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>IOCs EXTRACTED</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.5rem;'>{total_iocs}</h3></div>", unsafe_allow_html=True)
+            with col_m3:
+                st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>TTPs MAPPED</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.5rem;'>{len(ttps)}</h3></div>", unsafe_allow_html=True)
+            with col_m4:
+                risk_color = "#ef4444" if "CRITICAL" in risk_level else "#f59e0b" if "HIGH" in risk_level else "#10b981"
+                st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>RISK RATING</span><h3 style='color:{risk_color}; margin:5px 0; font-size:1.2rem;'>{risk_level}</h3></div>", unsafe_allow_html=True)
+            with col_m5:
+                st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>CONFIDENCE</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.5rem;'>{accuracy_score}%</h3></div>", unsafe_allow_html=True)
 
             st.write("")
 
@@ -818,7 +851,7 @@ if st.button(t["btn_process"], type="primary"):
 
             st.write("")
 
-            # ADVANCED SOC TABBED NAVIGATION INSIDE ISOLATED HERO CONTAINER
+            # ADVANCED SOC TABBED NAVIGATION INSIDE THE HERO DASHBOARD
             soc_tab1, soc_tab2, soc_tab3, soc_tab4 = st.tabs([
                 "📊 Telemetry & Correlation",
                 "🔍 IoC Inspector",
