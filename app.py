@@ -83,7 +83,7 @@ if st.sidebar.button("❌ Hide Control Panel"):
     st.session_state.sidebar_state = "collapsed"
     st.rerun()
 
-# Dynamic Theme & Immersive Scrolling Cyber Background CSS
+# Dynamic Theme & Immersive Scrolling Cyber Background CSS with Transparent Containers
 if theme_choice == "Cyberpunk Neon Mode":
     bg_color_solid = "#030208"
     bg_gradient = "radial-gradient(circle at 50% 10%, #1f0b3b 0%, #030208 80%)"
@@ -121,7 +121,7 @@ st.markdown(f"""
     
     /* 2. Floating Cyber Visuals Grid across the ENTIRE page height */
     .stApp::before {{
-        content: '{symbols * 20}';
+        content: '{symbols * 25}';
         position: fixed;
         top: 0; left: 0;
         width: 100%; height: 100%;
@@ -129,7 +129,7 @@ st.markdown(f"""
         grid-template-columns: repeat(12, 1fr);
         grid-template-rows: repeat(12, 1fr);
         font-size: 26px;
-        opacity: 0.055; /* Makes symbols clearly visible and glowing through */
+        opacity: 0.07;
         justify-items: center; align-items: center;
         overflow: hidden;
         pointer-events: none;
@@ -138,7 +138,12 @@ st.markdown(f"""
         line-height: 2.5;
     }}
 
-    /* 3. Sleek Sidebar */
+    /* 3. MAKE STREAMLIT CONTAINERS TRANSPARENT SO BACKGROUND SHOWS THROUGH */
+    .block-container, section.main, .stMainBlockContainer {{
+        background: transparent !important;
+    }}
+
+    /* 4. Sleek Sidebar */
     section[data-testid="stSidebar"] {{
         background: #080e1e !important;
         border-right: 1px solid #1e293b !important;
@@ -150,7 +155,7 @@ st.markdown(f"""
         font-weight: 600 !important;
     }}
 
-    /* 4. Typography & Headers */
+    /* 5. Typography & Headers */
     html, body, p, span, div, label, .stMarkdown, .stText {{
         color: {text_color} !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -158,7 +163,7 @@ st.markdown(f"""
     h1, h2, h3, h4 {{ color: {text_color} !important; font-weight: 700 !important; letter-spacing: -0.01em; }}
     h1 {{ color: {accent_color} !important; text-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }}
 
-    /* 5. Translucent Glassmorphism Cards (Letting background show through) */
+    /* 6. Translucent Glassmorphism Cards */
     div[data-testid="stMetric"], .stExpander, div.stTabs {{
         background: {card_bg} !important;
         backdrop-filter: blur(18px) saturate(180%);
@@ -179,7 +184,7 @@ st.markdown(f"""
         font-weight: 800 !important;
     }}
 
-    /* 6. Inputs & Textareas with Glass Effect */
+    /* 7. Inputs & Textareas with Glass Effect */
     textarea, input {{
         color: {text_color} !important;
         background-color: {card_bg} !important;
@@ -191,7 +196,7 @@ st.markdown(f"""
         box-shadow: 0 0 15px {border_color} !important;
     }}
 
-    /* 7. Glowing Action Buttons */
+    /* 8. Glowing Action Buttons */
     .stButton>button {{
         width: 100%;
         font-weight: 700;
@@ -210,7 +215,7 @@ st.markdown(f"""
         box-shadow: 0 6px 25px {border_color};
     }}
 
-    /* 8. Live Pulse Indicator HUD */
+    /* 9. Live Pulse Indicator HUD */
     .live-hud-badge {{
         display: inline-flex;
         align-items: center;
@@ -788,7 +793,7 @@ if st.button(t["btn_process"], type="primary"):
                 
                 with ioc_col2:
                     st.write("**SHA-256 Hashes:**", filter_list(iocs["SHA256"]) if filter_list(iocs["SHA256"]) else "None detected")
-                    st.write("MD5 Hashes:**", filter_list(iocs["MD5"]) if filter_list(iocs["MD5"]) else "None detected")
+                    st.write("**MD5 Hashes:**", filter_list(iocs["MD5"]) if filter_list(iocs["MD5"]) else "None detected")
                     st.write("**CVE Vulnerabilities:**", filter_list(iocs["CVE"]) if filter_list(iocs["CVE"]) else "None detected")
 
                 st.subheader("🎯 Layer 3 MITRE ATT&CK TTP Mapping")
