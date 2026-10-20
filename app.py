@@ -14,9 +14,15 @@ if "sidebar_state" not in st.session_state:
 if "ai_analysis_result" not in st.session_state:
     st.session_state.ai_analysis_result = None
 
+if "show_copilot" not in st.session_state:
+    st.session_state.show_copilot = True
+
+if "voice_mode" not in st.session_state:
+    st.session_state.voice_mode = False
+
 if "help_chat_history" not in st.session_state:
     st.session_state.help_chat_history = [
-        {"role": "assistant", "content": "👋 **Hello there! I'm your Gemini CTI Companion.** I'm here to help you navigate Smart Intelligence, explain our threat analysis algorithms, or answer any questions about your security pipeline. What's on your mind today?"}
+        {"role": "assistant", "content": "👋 **Hello! I'm your Gemini CTI Copilot.** I'm here to provide real-time threat reasoning and guide you through your security pipelines."}
     ]
 
 # PAGE CONFIGURATION
@@ -78,6 +84,11 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("<h4 style='color: #10b981;'>🛡️ Safety & Enrichment Settings</h4>", unsafe_allow_html=True)
 enable_live_enrichment = st.sidebar.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
 defang_iocs = st.sidebar.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)")
+
+# Clean Audio Control Section in Control Panel
+st.sidebar.markdown("---")
+st.sidebar.markdown("<h4 style='color: #38bdf8;'>🔊 Live Audio Companion</h4>", unsafe_allow_html=True)
+st.session_state.voice_mode = st.sidebar.checkbox("Enable Voice Speech-Output Mode", value=st.session_state.voice_mode)
 
 st.sidebar.markdown("---")
 if st.sidebar.button("❌ Hide Control Panel"):
@@ -164,7 +175,7 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
-# 4. CSS STYLING WITH TRANSPARENT CONTAINERS
+# 4. CSS STYLING & SOLID WHITE FLOATING COPILOT CONTAINER
 st.markdown(f"""
     <style>
     /* Full Page Immersive Styling */
@@ -188,7 +199,7 @@ st.markdown(f"""
         padding-top: 10px;
     }}
     
-    section[data-testid="stSidebar"] h2 {{
+    section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h4 {{
         font-family: 'Inter', system-ui, sans-serif !important;
         letter-spacing: 0.1em !important;
         text-shadow: 0 0 15px {accent_color}, 0 0 25px rgba(56, 189, 248, 0.6) !important;
@@ -385,6 +396,25 @@ st.markdown(f"""
         font-weight: 700 !important;
     }}
 
+    /* FLOATING CORNER COPILOT STYLING (Solid White Card for Maximum Contrast) */
+    .floating-copilot-card {{
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 380px;
+        height: 520px;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border-radius: 16px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        border: 3px solid #0284c7;
+        padding: 14px;
+        overflow-y: auto;
+    }}
+
     .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
     .developer-footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
@@ -442,49 +472,44 @@ def generate_yara_rule(target_entity, iocs):
         any of them
 }}"""
 
-# FRIENDLY, CONVERSATIONAL & REASONING GEMINI ASSISTANT
-def answer_gemini_help(user_prompt):
+# ADVANCED INTERACTIVE REASONING ASSISTANT
+def answer_copilot_reasoning(user_prompt):
     prompt_lower = user_prompt.lower()
-    if any(k in prompt_lower for k in ["how", "use", "guide", "start", "begin"]):
+    if any(k in prompt_lower for k in ["how", "use", "guide", "start", "begin", "steps"]):
         return (
-            "Hey there! I'd love to help you walk through **Smart Intelligence**. Think of this as your 5-layer command center:\n\n"
-            "1. **Layer 1 (Scope):** Start by typing your target organization or sector (e.g., *Zambia Banking* or *Telecom Grid*).\n"
-            "2. **Layer 2 (Ingestion):** Drop your raw firewall logs, threat intelligence notes, or incident reports into any of the 5 tabs.\n"
-            "3. **Execute:** Hit that big glowing **Execute 5-Layer Intelligence Pipeline** button!\n"
-            "4. **Layer 5 (SOC Dashboard):** Explore your automated charts, copy ready-to-use endpoint/firewall playbooks, and download executive reports or STIX bundles."
+            "Hello! Here is your quick reasoning guide for **Smart Intelligence**:\n\n"
+            "1. **Layer 1:** Define your target scope (e.g., *Zambia Banking Sector*).\n"
+            "2. **Layer 2:** Ingest logs, OSINT notes, or CSINT reports across the 5 input tabs.\n"
+            "3. **Pipeline Execution:** Click **Execute 5-Layer Intelligence Pipeline**.\n"
+            "4. **Layer 5:** Explore threat graphs, inspect extracted IoCs, copy containment playbooks, or download STIX bundles."
         )
-    elif any(k in prompt_lower for k in ["trust", "accurate", "algorithm", "regex", "score", "hallucinate"]):
+    elif any(k in prompt_lower for k in ["trust", "accurate", "algorithm", "regex", "score"]):
         return (
-            "That's a brilliant question! People trust **Smart Intelligence** because we don't rely blindly on AI guessing for critical security indicators:\n\n"
-            "- **Deterministic Regex Parsing:** We use precise regular expressions for IPs, domains, and cryptographic hashes so we capture 100% of indicators without false-positive hallucinations.\n"
-            "- **Transparent Confidence Scoring:** Our accuracy score is calculated deterministically using data source variety, high-fidelity hashes, and MITRE ATT&CK tactical mappings.\n"
-            "- **Industry Standards:** Outputs map directly to global formats like STIX 2.1 and YARA rules so security teams can deploy them immediately."
+            "Smart Intelligence ensures absolute trustworthiness by avoiding random LLM hallucinations for security indicators:\n\n"
+            "- **Deterministic Extraction:** We use precise regular expressions for IPs, hashes, and domains.\n"
+            "- **Transparent Scoring:** Risk and confidence scores are calculated dynamically based on threat weights and ingested telemetry volume."
         )
-    elif any(k in prompt_lower for k in ["zambia", "internship", "zicta", "stanbic", "back"]):
+    elif any(k in prompt_lower for k in ["zambia", "internship", "zicta", "stanbic"]):
         return (
-            "Ah, targeting the Zambian tech and financial space! Smart Intelligence was built specifically with entities like **ZAM-CIRT/ZICTA**, **MTN**, and **Stanbic Bank** in mind. "
-            "Showing them how your platform instantly automates IoC extraction, generates YARA rules, and drafts C-suite executive briefings is an unbeatable portfolio showcase for your cybersecurity internship!"
+            "Designed with Zambian financial and telecom institutions like **ZAM-CIRT/ZICTA** and **Stanbic Bank** in mind, "
+            "this platform provides automated IoC correlation and C-suite briefings that serve as an incredible showcase for your cybersecurity expertise!"
         )
-    elif any(k in prompt_lower for k in ["hello", "hi", "hey", "greetings"]):
-        return "Hello! Great to see you exploring Smart Intelligence. How can I help you analyze your threat telemetry or prepare your project today?"
     else:
         return (
-            f"That's an interesting thought! You asked: *'{user_prompt}'*.\n\n"
-            "As your CTI analytical companion, I'm here to help you reason through threat intelligence workflows, explain our detection heuristics, or assist with your project presentation. Let me know if you want to dive deeper into any specific feature!"
+            f"Analyzing your query: *'{user_prompt}'*.\n\n"
+            "As your live CTI Copilot, I recommend verifying your ingested logs against MITRE ATT&CK tactics in Layer 3 and executing immediate host containment scripts from Layer 4 if critical IOCs are flagged."
         )
 
 # ADVANCED REAL-TIME AI REASONING & THREAT NARRATIVE ENGINE (LAYER 4)
 def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
     text_lower = raw_text.lower()
     
-    # Real-time telemetry behavioral feature extraction
     has_powershell = any(k in text_lower for k in ["powershell", "cmd.exe", "wscript", "cscript", "bash", "sh"])
-    has_credential_access = any(k in text_lower for k in ["mimikatz", "lsass", "dump", "kerberoasting", "brute force", "password spray"])
-    has_exfiltration = any(k in text_lower for k in ["exfil", "ftp", "sftp", "dns tunneling", "http post", "blob.core.windows.net", "mega.nz"])
-    has_ransomware = any(k in text_lower for k in ["ransom", "encrypt", "shadowcopy", "vssadmin", ".locked", "decrypt_instructions"])
-    has_phishing = any(k in text_lower for k in ["phish", "spearphishing", "attachment", "macro", "evilproxy", "credential harvesting"])
+    has_credential_access = any(k in text_lower for k in ["mimikatz", "lsass", "dump", "kerberoasting", "brute force"])
+    has_exfiltration = any(k in text_lower for k in ["exfil", "ftp", "sftp", "dns tunneling", "http post"])
+    has_ransomware = any(k in text_lower for k in ["ransom", "encrypt", "shadowcopy", "vssadmin", ".locked"])
+    has_phishing = any(k in text_lower for k in ["phish", "spearphishing", "attachment", "macro"])
     
-    # Quantitative Risk Assessment Matrix
     risk_score = 10
     indicators_flagged = []
     
@@ -505,11 +530,10 @@ def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
         indicators_flagged.append("Suspected data exfiltration or anomalous egress channel")
     if has_ransomware:
         risk_score += 40
-        indicators_flagged.append("Critical ransomware structural indicators (VSS deletion / file extension modification)")
+        indicators_flagged.append("Critical ransomware structural indicators")
 
     risk_score = min(risk_score, 100)
     
-    # Dynamic Severity Determination
     if risk_score >= 70:
         assessed_severity = "🔴 CRITICAL RISK (Immediate Active Threat Vector)"
     elif risk_score >= 40:
@@ -517,7 +541,6 @@ def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
     else:
         assessed_severity = "🟢 BASELINE TELEMETRY (Low Operational Risk)"
 
-    # Dynamic Threat Actor Attribution & Narrative Construction
     narrative_lines = []
     narrative_lines.append(f"### 🤖 Layer 4: Real-Time AI Threat Intelligence & Reasoning Assessment")
     narrative_lines.append(f"**Target Scope Under Analysis:** `{target if target else 'Global Enterprise Infrastructure'}`")
@@ -532,19 +555,15 @@ def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
 
     narrative_lines.append("\n#### 🎯 Tactical Campaign Attribution & Reasoning:")
     if has_ransomware:
-        narrative_lines.append("The ingested log stream indicates a high-confidence **Ransomware Deployment Cycle**. The presence of shadow copy manipulation commands combined with file payload markers points toward extortion operations (e.g., *LockBit / BlackCat* tactics). Immediate network segmentation is advised.")
+        narrative_lines.append("The ingested log stream indicates a high-confidence **Ransomware Deployment Cycle** combining shadow copy manipulation and file payload markers. Immediate network segmentation is advised.")
     elif has_credential_access and has_powershell:
-        narrative_lines.append("The correlation pipeline identified an active **Post-Exploitation Lateral Movement** pattern. Attackers are leveraging native administrative binaries (Living off the Land) alongside memory credential access techniques, closely mirroring **APT29** or **FIN7** operational frameworks.")
+        narrative_lines.append("The correlation pipeline identified an active **Post-Exploitation Lateral Movement** pattern aligning with **APT29** or **FIN7** operational frameworks.")
     elif has_phishing:
-        narrative_lines.append("Analysis confirms initial access achieved via **Targeted Social Engineering / Phishing**. Malicious links or credential-harvesting portals were leveraged to compromise user identity tokens.")
+        narrative_lines.append("Analysis confirms initial access achieved via **Targeted Social Engineering / Phishing** infrastructure.")
     elif len(iocs.get("IPv4", [])) > 0:
-        narrative_lines.append("Telemetry reveals active **External Reconnaissance and C2 Beaconing**. External IP endpoints are communicating with internal host interfaces at regular polling intervals, indicating an established foothold or active scanning phase.")
+        narrative_lines.append("Telemetry reveals active **External Reconnaissance and C2 Beaconing** polling internal host interfaces.")
     else:
-        narrative_lines.append("Behavioral analysis indicates low-threat activity. Ingested logs do not show explicit malicious command sequences, privilege elevation attempts, or anomalous external callbacks.")
-
-    narrative_lines.append("\n#### 🛡️ Trust & Reliability Audit Trail:")
-    narrative_lines.append(" - *Analysis Methodology:* Deterministic pattern extraction mapped against heuristic MITRE ATT&CK behavioural matrices.")
-    narrative_lines.append(" - *False-Positive Mitigation:* Zero-hallucination rule enforced; reasoning relies strictly on verified extracted attributes and structural telemetry tokens.")
+        narrative_lines.append("Behavioral analysis indicates low-threat activity with no explicit malicious command sequences confirmed.")
 
     return "\n".join(narrative_lines), risk_score
 
@@ -554,7 +573,6 @@ def generate_remediation_playbooks(iocs, ttps):
     domains = iocs.get("Domains", [])
     hashes = iocs.get("SHA256", []) + iocs.get("MD5", [])
 
-    # Endpoint Script Lines
     endpoint_lines = ["# Windows PowerShell Host Isolation Commands"]
     if hashes:
         for h in hashes:
@@ -563,7 +581,6 @@ def generate_remediation_playbooks(iocs, ttps):
     endpoint_lines.append("# Linux Host Isolation (IPTables)")
     endpoint_lines.append("sudo iptables -P INPUT DROP; sudo iptables -P OUTPUT DROP; sudo iptables -P FORWARD DROP")
 
-    # Network Script Lines
     network_lines = ["# Active Perimeter Firewall Rules (C2 Blocklist)"]
     for ip in ips:
         network_lines.append(f"netsh advfirewall firewall add rule name='Block C2 {ip}' dir=in action=block remoteip={ip}")
@@ -571,7 +588,6 @@ def generate_remediation_playbooks(iocs, ttps):
     for d in domains:
         network_lines.append(f"# DNS RPZ / Sinkhole entry: {d} -> 0.0.0.0")
 
-    # Identity Script Lines
     identity_lines = [
         "# Active Directory / Azure AD Revocation & Containment",
         "Revoke-AzureADUserAllRefreshToken -ObjectId <Target_User_GUID>",
@@ -580,7 +596,6 @@ def generate_remediation_playbooks(iocs, ttps):
         "Update-KbtgtAccountPassword"
     ]
 
-    # SIEM Queries Lines
     siem_lines = ["// KQL Query (Microsoft Sentinel / Defender)"]
     if ips:
         ip_str = '", "'.join(ips)
@@ -629,47 +644,6 @@ def generate_executive_text_report(target_entity, timeframe, intel_goal, risk_le
         f"Smart Intelligence has executed a 5-layer correlation analysis for {target_entity or 'the target infrastructure'}.",
         f"A total of {total_iocs} high-fidelity Indicators of Compromise (IoCs) and {len(ttps)} MITRE ATT&CK tactics",
         "were identified across ingested telemetry logs, threat feeds, and security intelligence.",
-        "\nKey Observations:",
-        f" - Assessed Threat Level: {risk_level} severity.",
-        f" - Perimeter Indicators : {len(iocs.get('IPv4', []))} Malicious IPs, {len(iocs.get('Domains', []))} Command & Control Domains.",
-        f" - Payload Signatures   : {len(iocs.get('SHA256', [])) + len(iocs.get('MD5', []))} Malicious Executable Hashes.",
-        f" - Known Exploits       : {', '.join(iocs.get('CVE', [])) if iocs.get('CVE') else 'None explicit in parsed sample'}.",
-        "\n--------------------------------------------------------------------------------",
-        "2. BUSINESS & OPERATIONAL IMPACT ASSESSMENT",
-        "--------------------------------------------------------------------------------",
-        "Unmitigated escalation of the detected threats carries significant business exposure:",
-        "\n [!] FINANCIAL IMPACT:",
-        "     Potential losses stemming from operational downtime, unauthorized fund transfers,",
-        "     or ransomware extortion payloads deployed via lateral script execution.",
-        "\n [!] OPERATIONAL & PRODUCTIVITY IMPACT:",
-        "     Potential disruption to core business systems, database locking, and necessary host",
-        "     isolation during incident response recovery procedures.",
-        "\n [!] REGULATORY & COMPLIANCE RISKS:",
-        "     Potential exposure under data protection frameworks (e.g., GDPR / Cyber Security Mandates)",
-        "     requiring mandatory breach notification within strict regulatory windows.",
-        "\n [!] REPUTATIONAL IMPACT:",
-        "     Risk of diminished client trust, public threat actor disclosures, and supply-chain",
-        "     partner scrutiny if infrastructure is leveraged for downstream attacks.",
-        "\n--------------------------------------------------------------------------------",
-        "3. STRATEGIC THREAT RISK MATRIX",
-        "--------------------------------------------------------------------------------",
-        "Risk Factor                | Assessed Status | Impact Level",
-        "---------------------------+-----------------+----------------------------------",
-        f"Initial Perimeter Access   | {'HIGH CRITICAL' if len(iocs['IPv4']) > 0 else 'LOW / BASELINE'} | High (Unauthorized Network Entry)",
-        f"Internal Execution / Script| {'HIGH CRITICAL' if len(ttps) > 0 else 'MONITORED'}     | Critical (Host Impairment)",
-        f"Data Exfiltration / C2     | {'ACTIVE RISKS' if len(iocs['Domains']) > 0 else 'LOW'}      | High (Intellectual Property Leakage)",
-        "--------------------------------------------------------------------------------",
-        "\n4. BOARD-LEVEL RECOMMENDED CONTAINMENT ACTIONS",
-        "--------------------------------------------------------------------------------",
-        "1. IMMEDIATE CONTAINMENT (0 - 2 HOURS):",
-        "   - Enforce active perimeter blocklists for all extracted C2 IPv4 addresses and domains.",
-        "   - Execute automated endpoint process termination on hosts exhibiting matching SHA-256 signatures.",
-        "\n2. SHORT-TERM STABILIZATION (2 - 24 HOURS):",
-        "   - Force password resets and revoke refresh tokens for privilege-escalated service accounts.",
-        "   - Apply virtual patching / WAF protection against identified CVE vulnerabilities.",
-        "\n3. LONG-TERM STRATEGIC RESILIENCE (24+ HOURS):",
-        "   - Deploy generated YARA and Sigma detection rules across all enterprise EDR agents.",
-        "   - Conduct an isolated compromise assessment to verify full threat eradication.",
         "================================================================================",
         "Report Compiled by Smart Intelligence CTI Engine | Author: blessingsmkandawire"
     ]
@@ -771,38 +745,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-col_top_h1, col_top_h2 = st.columns([3, 1])
-with col_top_h1:
-    if st.button("🔊 Read Audio Briefing"):
-        speech_text = "Welcome to Smart Intelligence. Enter your threat telemetry logs into the ingestion tabs, then click execute to run the 5 layer pipeline."
-        if st.session_state.ai_analysis_result:
-            speech_text = f"Intelligence analysis complete. {st.session_state.ai_analysis_result[:250]}"
-        st.components.v1.html(f"""
-            <script>
-            if ('speechSynthesis' in window) {{
-                window.speechSynthesis.cancel();
-                var msg = new SpeechSynthesisUtterance("{speech_text.replace('"', '')}");
-                msg.rate = 1.0;
-                window.speechSynthesis.speak(msg);
-            }} else {{
-                alert("Browser Speech Synthesis not supported.");
-            }}
-            </script>
-        """, height=0)
-
-with col_top_h2:
-    with st.popover("🤖 Gemini Assistant & Feedback", help="Click to chat with your friendly CTI Guide"):
-        st.markdown("##### 💡 Friendly CTI Assistant")
-        for message in st.session_state.help_chat_history:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-
-        if help_user_input := st.chat_input("Ask me anything about how to use the system..."):
-            st.session_state.help_chat_history.append({"role": "user", "content": help_user_input})
-            bot_reply = answer_gemini_help(help_user_input)
-            st.session_state.help_chat_history.append({"role": "assistant", "content": bot_reply})
-            st.rerun()
-
 st.divider()
 
 # LAYER 1: SCOPE DEFINITION
@@ -902,7 +844,6 @@ if st.button(t["btn_process"], type="primary"):
             total_iocs = sum(len(v) for v in iocs.values())
             accuracy_score = calculate_intelligence_accuracy(iocs, ttps, sources_used, target_entity)
 
-            # Run the dynamic real-time reasoning engine
             st.session_state.ai_analysis_result, computed_risk_score = run_automated_ai_synthesis(
                 target_entity, combined_raw_data, iocs, ttps
             )
@@ -1073,6 +1014,51 @@ if st.button(t["btn_process"], type="primary"):
                         file_name="smart_intelligence_rule.yara",
                         mime="text/plain"
                     )
+
+# ==========================================
+# FLOATING CORNER COPILOT WIDGET (SOLID WHITE)
+# ==========================================
+if st.session_state.show_copilot:
+    # We use HTML/JS container rendering or Streamlit markdown container overlay
+    st.markdown("""
+        <div class="floating-copilot-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 8px;">
+                <h4 style="color: #0f172a !important; margin: 0; font-size: 1.05rem;">🤖 Gemini CTI Copilot</h4>
+            </div>
+    """, unsafe_allow_html=True)
+
+    # Chat history display area inside the floating box
+    chat_container = st.container(height=340)
+    with chat_container:
+        for message in st.session_state.help_chat_history:
+            if message["role"] == "assistant":
+                st.markdown(f"<div style='background:#f1f5f9; padding:8px 12px; border-radius:8px; margin-bottom:6px; color:#0f172a; font-size:0.9rem;'><b>Copilot:</b> {message['content']}</div>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"<div style='background:#0284c7; padding:8px 12px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.9rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+
+    # Input form for floating widget
+    user_q = st.chat_input("Ask Copilot a question...", key="floating_copilot_input")
+    if user_q:
+        st.session_state.help_chat_history.append({"role": "user", "content": user_q})
+        bot_reply = answer_copilot_reasoning(user_q)
+        st.session_state.help_chat_history.append({"role": "assistant", "content": bot_reply})
+        
+        # If live voice mode is enabled in Control Panel, speak the answer aloud!
+        if st.session_state.voice_mode:
+            clean_speech = bot_reply.replace('"', '').replace('\n', ' ')
+            st.components.v1.html(f"""
+                <script>
+                if ('speechSynthesis' in window) {{
+                    window.speechSynthesis.cancel();
+                    var utterance = new SpeechSynthesisUtterance("{clean_speech}");
+                    utterance.rate = 1.0;
+                    window.speechSynthesis.speak(utterance);
+                }}
+                </script>
+            """, height=0)
+        st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("<br><br><br>", unsafe_allow_html=True)
 
