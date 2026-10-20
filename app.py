@@ -19,7 +19,7 @@ if "voice_mode" not in st.session_state:
 
 if "help_chat_history" not in st.session_state:
     st.session_state.help_chat_history = [
-        {"role": "assistant", "content": "👋 **Hello! I'm your Gemini CTI Copilot.** Ask me anything about your threat pipeline or security workflows!"}
+        {"role": "assistant", "content": "👋 **Hello! I'm your Gemini CTI Copilot.** Ask me anything about your threat pipeline, cybersecurity, or general questions!"}
     ]
 
 # PAGE CONFIGURATION
@@ -252,7 +252,32 @@ st.markdown(f"""
         box-shadow: {glow_shadow} !important;
     }}
 
-    /* ELITE SOC PROFESSIONAL LAYER 5 DELIVERABLE DASHBOARD */
+    /* SECTOR 05 SEGMENT IDENTIFIER BANNER */
+    .deliverable-sector-banner {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(90deg, rgba(56, 189, 248, 0.2) 0%, rgba(0, 255, 204, 0.15) 100%);
+        border: 1.5px solid {border_color};
+        border-left: 6px solid #00ffcc;
+        padding: 10px 20px;
+        border-radius: 12px;
+        margin-top: 20px;
+        margin-bottom: 12px;
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+    }}
+
+    .deliverable-sector-tag {{
+        background: #00ffcc;
+        color: #030712;
+        font-weight: 900;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 0.82rem;
+        letter-spacing: 0.1em;
+    }}
+
+    /* ELITE SOC PROFESSIONAL LAYER 5 DELIVERABLE DASHBOARD HERO */
     .soc-dashboard-hero {{
         background: linear-gradient(135deg, rgba(11, 19, 43, 0.95) 0%, rgba(4, 9, 22, 0.98) 100%) !important;
         border: 2px solid {border_color} !important;
@@ -260,7 +285,6 @@ st.markdown(f"""
         border-radius: 20px !important;
         padding: 32px !important;
         box-shadow: 0 0 40px rgba(56, 189, 248, 0.35), inset 0 0 20px rgba(56, 189, 248, 0.1) !important;
-        margin-top: 25px !important;
         margin-bottom: 40px !important;
     }}
 
@@ -404,32 +428,65 @@ def generate_yara_rule(target_entity, iocs):
         any of them
 }}"""
 
-# ADVANCED INTERACTIVE REASONING ASSISTANT
+# VERSATILE INTERACTIVE REASONING ASSISTANT
 def answer_copilot_reasoning(user_prompt):
     prompt_lower = user_prompt.lower()
-    if any(k in prompt_lower for k in ["how", "use", "guide", "start", "begin", "steps"]):
+    
+    # SAFETY GUARDRAIL: Block harmful/hazardous instructions
+    hazardous_keywords = [
+        "how to make a bomb", "explosive", "build weapon", "hack into bank", 
+        "ddos attack code", "steal money", "malware tutorial to attack", 
+        "bypass password illegally", "crack password of my neighbor"
+    ]
+    if any(k in prompt_lower for k in hazardous_keywords):
         return (
-            "Hello! Here is your quick reasoning guide for **Smart Intelligence**:\n\n"
-            "1. **Layer 1:** Define your target scope (e.g., *Zambia Banking Sector*).\n"
-            "2. **Layer 2:** Ingest logs, OSINT notes, or CSINT reports across the 5 input tabs.\n"
-            "3. **Pipeline Execution:** Click **Execute 5-Layer Intelligence Pipeline**.\n"
-            "4. **Layer 5:** Explore threat graphs, inspect extracted IoCs, copy containment playbooks, or download STIX bundles."
+            "⚠️ **Safety Notice:** I am configured to operate as a secure, ethical assistant. "
+            "I cannot assist with hazardous activities, unauthorized cyber exploitation, or illegal actions. "
+            "However, I can provide information on defensive security practices, threat intelligence methodologies, or operational guidance!"
         )
-    elif any(k in prompt_lower for k in ["trust", "accurate", "algorithm", "regex", "score"]):
+
+    # 1. Platform & Workflow Specific Questions
+    if any(k in prompt_lower for k in ["how", "use", "guide", "start", "begin", "steps", "workflow"]):
         return (
-            "Smart Intelligence ensures absolute trustworthiness by avoiding random LLM hallucinations for security indicators:\n\n"
-            "- **Deterministic Extraction:** We use precise regular expressions for IPs, hashes, and domains.\n"
-            "- **Transparent Scoring:** Risk and confidence scores are calculated dynamically based on threat weights and ingested telemetry volume."
+            "Here is your step-by-step workflow for **Smart Intelligence**:\n\n"
+            "1. **Layer 1 (Scope):** Specify your target entity or sector.\n"
+            "2. **Layer 2 (Ingestion):** Ingest logs, OSINT, CSINT, or feed data into the multi-source tabs.\n"
+            "3. **Pipeline Trigger:** Click **Execute 5-Layer Intelligence Pipeline**.\n"
+            "4. **Layer 5 (Deliverables Sector):** View executive briefings, IoC tables, containment playbooks, and STIX/YARA exports!"
+        )
+    elif any(k in prompt_lower for k in ["trust", "accurate", "algorithm", "regex", "score", "confidence"]):
+        return (
+            "**Smart Intelligence Accuracy Standard:**\n\n"
+            "- **Deterministic Extraction:** Regular expressions guarantee 0% hallucination on IPs, CVEs, and cryptographic hashes.\n"
+            "- **Dynamic Scoring:** Risk ratings combine threat indicator weightings with telemetry volume for transparent reporting."
         )
     elif any(k in prompt_lower for k in ["zambia", "internship", "zicta", "stanbic"]):
         return (
-            "Designed with Zambian financial and telecom institutions like **ZAM-CIRT/ZICTA** and **Stanbic Bank** in mind, "
-            "this platform provides automated IoC correlation and C-suite briefings that serve as an incredible showcase for your cybersecurity expertise!"
+            "Designed with Zambian enterprise requirements (**ZICTA/ZAM-CIRT**, **Stanbic Bank**, **MTN**) in mind, "
+            "this platform provides automated C-suite briefings and threat correlation tailored for national cyber resilience."
         )
+
+    # 2. Cybersecurity & Technical Concepts
+    elif any(k in prompt_lower for k in ["mitre", "attack", "ttp", "tactics"]):
+        return (
+            "The **MITRE ATT&CK Framework** categorizes adversary behaviors into tactics (goals) and techniques (methods). "
+            "In Layer 3, Smart Intelligence automatically maps ingested log patterns to corresponding ATT&CK IDs (e.g., *TA0002 Execution*, *TA0006 Credential Access*)."
+        )
+    elif any(k in prompt_lower for k in ["ioc", "stix", "yara", "cve"]):
+        return (
+            "**Threat Intelligence Deliverables Breakdown:**\n\n"
+            "- **IoCs:** Technical artifacts like IP addresses, domains, and file hashes.\n"
+            "- **STIX 2.1:** Structured XML/JSON format for automated machine-to-machine threat sharing.\n"
+            "- **YARA Rules:** Pattern-matching rules used to scan systems for malicious binaries."
+        )
+
+    # 3. General Helpful Q&A
+    elif any(k in prompt_lower for k in ["hello", "hi", "hey", "who are you"]):
+        return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis, security workflows, or general inquiries today?"
     else:
         return (
-            f"Analyzing your query: *'{user_prompt}'*.\n\n"
-            "As your live CTI Copilot, I recommend verifying your ingested logs against MITRE ATT&CK tactics in Layer 3 and executing immediate host containment scripts from Layer 4 if critical IOCs are flagged."
+            f"Regarding your query: *'{user_prompt}'*\n\n"
+            "I'm here to assist smoothly! If this relates to your current operational pipeline, you can ingest relevant logs in Layer 2 or review extracted indicators in Layer 5. Let me know if you need specific technical guidance or security insights!"
         )
 
 # ADVANCED REAL-TIME AI REASONING & THREAT NARRATIVE ENGINE (LAYER 4)
@@ -650,7 +707,7 @@ def generate_stix_bundle(target_entity, iocs):
             })
     return {"type": "bundle", "id": bundle_id, "objects": objects}
 
-# 4. HEADER BANNER & PROFESSIONAL TOP-RIGHT ADAPTIVE COPILOT POPOVER WITH CLEAN Q&A STATE
+# 4. HEADER BANNER & PROFESSIONAL TOP-RIGHT ADAPTIVE COPILOT POPOVER
 st.image("https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcROn-mrBQe5btdrktqpXydcOjv7g-kthMpnU2tXpevypi1IkEe_ZHPFLaRy5VxKY4WNtuds3KQnZXLLx8Y", use_container_width=True)
 
 col_hdr1, col_hdr2 = st.columns([3, 1])
@@ -664,7 +721,7 @@ with col_hdr2:
         st.markdown(f"""
             <div style="background-color: {copilot_bg}; color: {copilot_text}; padding: 4px; border-radius: 8px;">
                 <h4 style="color: {copilot_text} !important; margin-bottom: 2px;">💡 Gemini CTI Copilot</h4>
-                <p style="color: {copilot_text} !important; font-size: 0.82rem; opacity: 0.9;">Real-time reasoning assistant & workflow guide.</p>
+                <p style="color: {copilot_text} !important; font-size: 0.82rem; opacity: 0.9;">Real-time interactive assistant & general guidance engine.</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -676,9 +733,8 @@ with col_hdr2:
                 else:
                     st.markdown(f"<div style='background:{copilot_bubble_user}; padding:8px 12px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.88rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
 
-        # Clean Form submission for single Q&A turn execution without loop duplication
         with st.form(key="copilot_form", clear_on_submit=True):
-            user_input = st.text_input("Ask a question...", label_visibility="collapsed", placeholder="Ask a question...")
+            user_input = st.text_input("Ask a question...", label_visibility="collapsed", placeholder="Ask any question...")
             submit_btn = st.form_submit_button("Send")
             
             if submit_btn and user_input.strip():
@@ -830,10 +886,21 @@ if st.button(t["btn_process"], type="primary"):
 
             st.success("5-Layer Intelligence Pipeline Execution Complete!")
 
-            st.divider()
+            # ==========================================
+            # SECTOR 05 SEGMENT IDENTIFIER BANNER
+            # ==========================================
+            st.markdown("""
+                <div class="deliverable-sector-banner">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="deliverable-sector-tag">SECTOR 05</span>
+                        <span style="font-size: 1.1rem; font-weight: 800; letter-spacing: 0.05em;">📊 DELIVERABLE DASHBOARD & OPERATIONAL COMMAND SEGMENT</span>
+                    </div>
+                    <span style="font-size: 0.85rem; opacity: 0.8; font-weight: 700;">CONFIDENTIAL CTI EXPORTS ACTIVE</span>
+                </div>
+            """, unsafe_allow_html=True)
 
             # ==========================================
-            # LAYER 5: PROFESSIONAL SOC OPERATIONAL DASHBOARD
+            # LAYER 5: PROFESSIONAL SOC OPERATIONAL DASHBOARD HERO
             # ==========================================
             st.markdown('<div class="soc-dashboard-hero">', unsafe_allow_html=True)
             st.markdown(f"<h2 style='color: #38bdf8; margin-bottom: 5px;'>🚀 {t['l5']}</h2>", unsafe_allow_html=True)
