@@ -6,6 +6,7 @@ from datetime import datetime
 import pandas as pd
 import altair as alt
 import requests
+import base64
 
 # 1. SESSION STATE FOR THEME, SIDEBAR, & CHAT
 if "sidebar_state" not in st.session_state:
@@ -14,17 +15,20 @@ if "sidebar_state" not in st.session_state:
 if "ai_analysis_result" not in st.session_state:
     st.session_state.ai_analysis_result = None
 
+if "computed_risk_score" not in st.session_state:
+    st.session_state.computed_risk_score = 0
+
 if "voice_mode" not in st.session_state:
     st.session_state.voice_mode = False
 
 if "help_chat_history" not in st.session_state:
     st.session_state.help_chat_history = [
-        {"role": "assistant", "content": "👋 **Hello! I'm your Gemini CTI Copilot.** Ask me anything about your threat pipeline, cybersecurity, or general questions!"}
+        {"role": "assistant", "content": "👋 **Hello! I'm your Gemini CTI Copilot.** Ask me anything about your threat pipeline, security workflows, or click a quick prompt below!"}
     ]
 
 # PAGE CONFIGURATION
 st.set_page_config(
-    page_title="Smart Intelligence | CTI Platform",
+    page_title="Smart Intelligence | Enterprise CTI Suite",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state=st.session_state.sidebar_state
@@ -73,7 +77,7 @@ LANGUAGES = {
 selected_lang = st.sidebar.selectbox("🌐 Interface Language", list(LANGUAGES.keys()))
 t = LANGUAGES[selected_lang]
 
-# Theme Switcher with instant rerun callback
+# Theme Switcher
 def on_theme_change():
     pass
 
@@ -83,11 +87,13 @@ theme_choice = st.sidebar.selectbox(
     on_change=on_theme_change
 )
 
-# Organized Dropdown / Expander for Control Panel Options
-with st.sidebar.expander("🛠️ Advanced Platform Settings", expanded=False):
+# Organized Dropdown / Expander for Control Panel Options & API Integrations
+with st.sidebar.expander("🛠️ Advanced Platform & API Settings", expanded=False):
     enable_live_enrichment = st.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
     defang_iocs = st.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)")
     st.session_state.voice_mode = st.checkbox("Enable Live Voice Speech-Output", value=st.session_state.voice_mode)
+    vt_api_key = st.text_input("VirusTotal API Key (Optional)", type="password", placeholder="Enter VT v3 key...")
+    webhook_url = st.text_input("SOC Webhook URL (Slack/Teams)", placeholder="https://webhook.site/...")
 
 st.sidebar.markdown("---")
 if st.sidebar.button("❌ Hide Control Panel"):
@@ -394,15 +400,32 @@ def defang(text):
     text = re.sub(r'([a-zA-Z0-9-]+\.)+([a-zA-Z]{2,})', lambda m: m.group(0).replace('.', '[.]'), text)
     return text
 
-def enrich_ip_data(ip_list):
+def enrich_ip_data(ip_list, vt_key):
     results = []
     for ip in ip_list[:3]:
         try:
             res = requests.get(f"http://ip-api.com/json/{ip}", timeout=3).json()
             if res.get("status") == "success":
-                results.append(f"IP {ip}: {res.get('org', 'Unknown Org')} ({res.get('country', 'Unknown')}) - ISP: {res.get('isp')}")
+                org_info = res.get('org', 'Unknown Org')
+                country = res.get('country', 'Unknown')
+                isp = res.get('isp')
+                results.append(f"IP {ip}: {org_info} ({country}) - ISP: {isp}")
         except Exception:
             pass
+            
+    # Optional VirusTotal integration check if key provided
+    if vt_key and ip_list:
+        try:
+            headers = {"x-apikey": vt_key}
+            # Query first IP as a sample check on VT if needed
+            sample_ip = ip_list[0].replace('[.]', '.')
+            vt_res = requests.get(f"https://www.virustotal.com/api/v3/ip_addresses/{sample_ip}", headers=headers, timeout=3)
+            if vt_res.status_code == 200:
+                stats = vt_res.json().get("data", {}).get("attributes", {}).get("last_analysis_stats", {})
+                results.append(f"VT Intelligence: {sample_ip} malicious score = {stats.get('malicious', 0)} detections.")
+        except Exception:
+            pass
+            
     return results
 
 def generate_yara_rule(target_entity, iocs):
@@ -428,7 +451,7 @@ def generate_yara_rule(target_entity, iocs):
         any of them
 }}"""
 
-# VERSATILE INTERACTIVE REASONING ASSISTANT
+# CONTEXT-AWARE VERSATILE COPILOT REASONING ASSISTANT
 def answer_copilot_reasoning(user_prompt):
     prompt_lower = user_prompt.lower()
     
@@ -445,48 +468,31 @@ def answer_copilot_reasoning(user_prompt):
             "However, I can provide information on defensive security practices, threat intelligence methodologies, or operational guidance!"
         )
 
-    # 1. Platform & Workflow Specific Questions
+    # Contextual awareness check
+    current_risk = st.session_state.get("computed_risk_score", 0)
+    
+    if "risk" in prompt_lower or "summary" in prompt_lower:
+        return f"📊 **Current Pipeline Analysis:** Your active analysis has a calculated Threat Risk Index of **{current_risk}/100**. Check Layer 5 for detailed metrics and behavioral telemetry."
+    elif "ttp" in prompt_lower or "mitre" in prompt_lower:
+        return "🎯 **MITRE ATT&CK Mapping:** Ingested indicators are mapped to tactics like Initial Access (TA0001) and Execution (TA0002) in Layer 3."
+    elif "playbook" in prompt_lower or "containment" in prompt_lower:
+        return "🛡️ **Playbooks:** Layer 4 & 5 provide ready-to-execute PowerShell commands, IPTables firewall rules, and SIEM KQL queries for immediate incident containment."
+    
+    # General helpful Q&A
     if any(k in prompt_lower for k in ["how", "use", "guide", "start", "begin", "steps", "workflow"]):
         return (
             "Here is your step-by-step workflow for **Smart Intelligence**:\n\n"
-            "1. **Layer 1 (Scope):** Specify your target entity or sector.\n"
-            "2. **Layer 2 (Ingestion):** Ingest logs, OSINT, CSINT, or feed data into the multi-source tabs.\n"
-            "3. **Pipeline Trigger:** Click **Execute 5-Layer Intelligence Pipeline**.\n"
-            "4. **Layer 5 (Deliverables Sector):** View executive briefings, IoC tables, containment playbooks, and STIX/YARA exports!"
+            "1. **Layer 1:** Specify your target scope.\n"
+            "2. **Layer 2:** Ingest logs, OSINT, or CSINT in the ingestion tabs.\n"
+            "3. **Pipeline Execution:** Click **Execute 5-Layer Intelligence Pipeline**.\n"
+            "4. **Sector 05:** Access executive briefings, IoC tables, playbooks, and exports!"
         )
-    elif any(k in prompt_lower for k in ["trust", "accurate", "algorithm", "regex", "score", "confidence"]):
-        return (
-            "**Smart Intelligence Accuracy Standard:**\n\n"
-            "- **Deterministic Extraction:** Regular expressions guarantee 0% hallucination on IPs, CVEs, and cryptographic hashes.\n"
-            "- **Dynamic Scoring:** Risk ratings combine threat indicator weightings with telemetry volume for transparent reporting."
-        )
-    elif any(k in prompt_lower for k in ["zambia", "internship", "zicta", "stanbic"]):
-        return (
-            "Designed with Zambian enterprise requirements (**ZICTA/ZAM-CIRT**, **Stanbic Bank**, **MTN**) in mind, "
-            "this platform provides automated C-suite briefings and threat correlation tailored for national cyber resilience."
-        )
-
-    # 2. Cybersecurity & Technical Concepts
-    elif any(k in prompt_lower for k in ["mitre", "attack", "ttp", "tactics"]):
-        return (
-            "The **MITRE ATT&CK Framework** categorizes adversary behaviors into tactics (goals) and techniques (methods). "
-            "In Layer 3, Smart Intelligence automatically maps ingested log patterns to corresponding ATT&CK IDs (e.g., *TA0002 Execution*, *TA0006 Credential Access*)."
-        )
-    elif any(k in prompt_lower for k in ["ioc", "stix", "yara", "cve"]):
-        return (
-            "**Threat Intelligence Deliverables Breakdown:**\n\n"
-            "- **IoCs:** Technical artifacts like IP addresses, domains, and file hashes.\n"
-            "- **STIX 2.1:** Structured XML/JSON format for automated machine-to-machine threat sharing.\n"
-            "- **YARA Rules:** Pattern-matching rules used to scan systems for malicious binaries."
-        )
-
-    # 3. General Helpful Q&A
     elif any(k in prompt_lower for k in ["hello", "hi", "hey", "who are you"]):
-        return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis, security workflows, or general inquiries today?"
+        return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis or security workflows today?"
     else:
         return (
             f"Regarding your query: *'{user_prompt}'*\n\n"
-            "I'm here to assist smoothly! If this relates to your current operational pipeline, you can ingest relevant logs in Layer 2 or review extracted indicators in Layer 5. Let me know if you need specific technical guidance or security insights!"
+            "I'm here to assist smoothly! Ingest your logs in Layer 2 or review extracted indicators in Sector 05. Let me know if you need specific technical guidance or security insights!"
         )
 
 # ADVANCED REAL-TIME AI REASONING & THREAT NARRATIVE ENGINE (LAYER 4)
@@ -522,6 +528,7 @@ def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
         indicators_flagged.append("Critical ransomware structural indicators")
 
     risk_score = min(risk_score, 100)
+    st.session_state.computed_risk_score = risk_score
     
     if risk_score >= 70:
         assessed_severity = "🔴 CRITICAL RISK (Immediate Active Threat Vector)"
@@ -638,6 +645,25 @@ def generate_executive_text_report(target_entity, timeframe, intel_goal, risk_le
     ]
     return "\n".join(report)
 
+def generate_html_report(target_entity, risk_level, accuracy_score, iocs, ttps):
+    total_iocs = sum(len(v) for v in iocs.values())
+    return f"""
+    <html>
+    <head><style>body{{font-family:Arial,sans-serif;padding:20px;background:#040714;color:#f8fafc;}} h1{{color:#38bdf8;}}</style></head>
+    <body>
+        <h1>Smart Intelligence - Executive Threat Report</h1>
+        <p><b>Target:</b> {target_entity or 'Global Network'}</p>
+        <p><b>Risk Rating:</b> {risk_level} | <b>Confidence:</b> {accuracy_score}%</p>
+        <p><b>Total IoCs:</b> {total_iocs} | <b>TTPs Mapped:</b> {len(ttps)}</p>
+        <hr>
+        <h3>Extracted Indicators Summary</h3>
+        <p><b>IPv4 Count:</b> {len(iocs.get('IPv4', []))}</p>
+        <p><b>Hashes Count:</b> {len(iocs.get('SHA256', [])) + len(iocs.get('MD5', []))}</p>
+        <p><b>CVEs Count:</b> {len(iocs.get('CVE', []))}</p>
+    </body>
+    </html>
+    """
+
 # CORE PROCESSING FUNCTIONS
 def extract_iocs(raw_text):
     patterns = {
@@ -725,13 +751,26 @@ with col_hdr2:
             </div>
         """, unsafe_allow_html=True)
         
-        chat_box = st.container(height=280)
+        chat_box = st.container(height=260)
         with chat_box:
             for message in st.session_state.help_chat_history:
                 if message["role"] == "assistant":
                     st.markdown(f"<div style='background:{copilot_bubble_assistant}; padding:8px 12px; border-radius:8px; margin-bottom:6px; color:{copilot_text}; font-size:0.88rem;'><b>Copilot:</b> {message['content']}</div>", unsafe_allow_html=True)
                 else:
                     st.markdown(f"<div style='background:{copilot_bubble_user}; padding:8px 12px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.88rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+
+        # Quick Suggestion Buttons
+        col_qb1, col_qb2 = st.columns(2)
+        if col_qb1.button("📊 Summarize Risk", key="qb_risk"):
+            reply = answer_copilot_reasoning("Summarize current threat risk")
+            st.session_state.help_chat_history.append({"role": "user", "content": "Summarize current threat risk"})
+            st.session_state.help_chat_history.append({"role": "assistant", "content": reply})
+            st.rerun()
+        if col_qb2.button("🛡️ View Playbooks", key="qb_playbooks"):
+            reply = answer_copilot_reasoning("Explain containment playbooks")
+            st.session_state.help_chat_history.append({"role": "user", "content": "Explain containment playbooks"})
+            st.session_state.help_chat_history.append({"role": "assistant", "content": reply})
+            st.rerun()
 
         with st.form(key="copilot_form", clear_on_submit=True):
             user_input = st.text_input("Ask a question...", label_visibility="collapsed", placeholder="Ask any question...")
@@ -864,7 +903,7 @@ if st.button(t["btn_process"], type="primary"):
             yara_code = generate_yara_rule(target_entity, iocs)
             playbooks = generate_remediation_playbooks(iocs, ttps)
             
-            live_enrichment = enrich_ip_data(iocs.get("IPv4", [])) if enable_live_enrichment else []
+            live_enrichment = enrich_ip_data(iocs.get("IPv4", []), vt_api_key) if enable_live_enrichment else []
             
             total_iocs = sum(len(v) for v in iocs.values())
             accuracy_score = calculate_intelligence_accuracy(iocs, ttps, sources_used, target_entity)
@@ -883,6 +922,7 @@ if st.button(t["btn_process"], type="primary"):
             text_report = generate_executive_text_report(
                 target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs, ttps, live_enrichment
             )
+            html_report = generate_html_report(target_entity, risk_level, accuracy_score, iocs, ttps)
 
             st.success("5-Layer Intelligence Pipeline Execution Complete!")
 
@@ -974,7 +1014,7 @@ if st.button(t["btn_process"], type="primary"):
                         st.info("Insufficient IoC nodes to render correlation graph.")
 
                 if live_enrichment:
-                    st.subheader("🌐 Layer 3 Live Feed Enrichment Data")
+                    st.subheader("🌐 Layer 3 Live Feed & API Enrichment Data")
                     for item in live_enrichment:
                         st.warning(f"📡 {item}")
 
@@ -1037,11 +1077,11 @@ if st.button(t["btn_process"], type="primary"):
 
             with soc_tab4:
                 st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
-                dl_col1, dl_col2, dl_col3 = st.columns(3)
+                dl_col1, dl_col2, dl_col3, dl_col4 = st.columns(4)
                 
                 with dl_col1:
                     st.download_button(
-                        label="📄 Download Executive Briefing (.txt)",
+                        label="📄 Download Executive (.txt)",
                         data=text_report,
                         file_name="executive_threat_briefing.txt",
                         mime="text/plain"
@@ -1049,7 +1089,7 @@ if st.button(t["btn_process"], type="primary"):
                     
                 with dl_col2:
                     st.download_button(
-                        label="📥 Download STIX 2.1 Bundle (.json)",
+                        label="📥 Download STIX 2.1 (.json)",
                         data=json.dumps(stix_bundle, indent=4),
                         file_name="smart_intelligence_stix21.json",
                         mime="application/json"
@@ -1057,11 +1097,37 @@ if st.button(t["btn_process"], type="primary"):
 
                 with dl_col3:
                     st.download_button(
-                        label="🛡️ Download YARA Rules (.yara)",
+                        label="🛡️ Download YARA (.yara)",
                         data=yara_code,
                         file_name="smart_intelligence_rule.yara",
                         mime="text/plain"
                     )
+
+                with dl_col4:
+                    st.download_button(
+                        label="🌐 Download HTML Report (.html)",
+                        data=html_report,
+                        file_name="executive_threat_report.html",
+                        mime="text/html"
+                    )
+
+                st.divider()
+                st.subheader("🚨 Automated Incident Response Webhook Dispatcher")
+                if st.button("📡 Dispatch Threat Alert to SOC Webhook"):
+                    if not webhook_url:
+                        st.warning("Please configure your SOC Webhook URL in the Control Panel sidebar first.")
+                    else:
+                        try:
+                            payload = {
+                                "text": f"🚨 *Smart Intelligence CTI Alert* \n*Target:* {target_entity}\n*Risk Rating:* {risk_level}\n*Total IoCs:* {total_iocs}"
+                            }
+                            resp = requests.post(webhook_url, json=payload, timeout=5)
+                            if resp.status_code in [200, 201, 204]:
+                                st.success("Successfully dispatched alert payload to your SOC Webhook endpoint!")
+                            else:
+                                st.error(f"Webhook responded with status code: {resp.status_code}")
+                        except Exception as e:
+                            st.error(f"Failed to dispatch webhook: {e}")
 
             st.markdown('</div>', unsafe_allow_html=True)
 
