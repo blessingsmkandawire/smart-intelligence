@@ -14,9 +14,6 @@ if "sidebar_state" not in st.session_state:
 if "ai_analysis_result" not in st.session_state:
     st.session_state.ai_analysis_result = None
 
-if "copilot_open" not in st.session_state:
-    st.session_state.copilot_open = False
-
 if "voice_mode" not in st.session_state:
     st.session_state.voice_mode = False
 
@@ -33,7 +30,7 @@ st.set_page_config(
     initial_sidebar_state=st.session_state.sidebar_state
 )
 
-# 2. HIGH-VISIBILITY CONTROL PANEL (SIDEBAR)
+# 2. HIGH-VISIBILITY CONTROL PANEL (SIDEBAR WITH DROPDOWN EXPANDER)
 st.sidebar.markdown("<h2 style='color: #38bdf8; text-align: center; border-bottom: 2px solid #38bdf8; padding-bottom: 8px;'>⚙️ CONTROL PANEL</h2>", unsafe_allow_html=True)
 
 LANGUAGES = {
@@ -79,16 +76,11 @@ t = LANGUAGES[selected_lang]
 # Theme Switcher
 theme_choice = st.sidebar.selectbox("🎨 UI Visual Mode", ["Dark SOC Theme", "Cyberpunk Neon Mode", "Clean Light Mode"])
 
-# Feed & Safety Settings
-st.sidebar.markdown("---")
-st.sidebar.markdown("<h4 style='color: #10b981;'>🛡️ Safety & Enrichment Settings</h4>", unsafe_allow_html=True)
-enable_live_enrichment = st.sidebar.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
-defang_iocs = st.sidebar.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)")
-
-# Clean Audio Control Section in Control Panel
-st.sidebar.markdown("---")
-st.sidebar.markdown("<h4 style='color: #38bdf8;'>🔊 Live Audio Companion</h4>", unsafe_allow_html=True)
-st.session_state.voice_mode = st.sidebar.checkbox("Enable Voice Speech-Output Mode", value=st.session_state.voice_mode)
+# Organized Dropdown / Expander for Control Panel Options
+with st.sidebar.expander("🛠️ Advanced Platform Settings", expanded=False):
+    enable_live_enrichment = st.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
+    defang_iocs = st.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)")
+    st.session_state.voice_mode = st.checkbox("Enable Live Voice Speech-Output", value=st.session_state.voice_mode)
 
 st.sidebar.markdown("---")
 if st.sidebar.button("❌ Hide Control Panel"):
@@ -175,7 +167,7 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
-# 4. CSS STYLING
+# 4. CSS STYLING & ISOLATED LAYER 5 DELIVERABLE DASHBOARD HERO CONTAINER
 st.markdown(f"""
     <style>
     .stApp {{
@@ -210,18 +202,6 @@ st.markdown(f"""
         letter-spacing: 0.03em !important;
     }}
 
-    section[data-testid="stSidebar"] div[data-baseweb="select"], 
-    section[data-testid="stSidebar"] div[data-testid="stCheckbox"] {{
-        background: rgba(10, 20, 42, 0.8) !important;
-        backdrop-filter: blur(12px) !important;
-        border: 1.5px solid {border_color} !important;
-        border-radius: 12px !important;
-        box-shadow: 0 0 15px rgba(56, 189, 248, 0.25) !important;
-        padding: 4px 8px !important;
-        margin-bottom: 8px !important;
-        transition: all 0.3s ease-in-out !important;
-    }}
-
     html, body, p, span, div, label, .stMarkdown, .stText {{
         color: {text_color} !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -251,6 +231,18 @@ st.markdown(f"""
         border-radius: 14px;
         padding: 18px 22px;
         box-shadow: {glow_shadow} !important;
+    }}
+
+    /* ISOLATED ELITE LAYER 5 DELIVERABLE DASHBOARD HERO CONTAINER */
+    .layer5-isolated-dashboard {{
+        background: linear-gradient(135deg, rgba(8, 14, 32, 0.95) 0%, rgba(3, 7, 18, 0.98) 100%) !important;
+        border: 2px solid #00ffcc !important;
+        border-top: 5px solid #00ffcc !important;
+        border-radius: 18px !important;
+        padding: 28px !important;
+        box-shadow: 0 0 35px rgba(0, 255, 204, 0.35), inset 0 0 25px rgba(0, 255, 204, 0.1) !important;
+        margin-top: 25px !important;
+        margin-bottom: 35px !important;
     }}
 
     .stButton>button {{
@@ -630,25 +622,55 @@ def generate_stix_bundle(target_entity, iocs):
             })
     return {"type": "bundle", "id": bundle_id, "objects": objects}
 
-# 4. HEADER BANNER & LIVE HUD STATUS
+# 4. HEADER BANNER & PROFESSIONAL TOP-RIGHT NATIVE CTI COPILOT POPOVER
 st.image("https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcROn-mrBQe5btdrktqpXydcOjv7g-kthMpnU2tXpevypi1IkEe_ZHPFLaRy5VxKY4WNtuds3KQnZXLLx8Y", use_container_width=True)
 
 col_hdr1, col_hdr2 = st.columns([3, 1])
 with col_hdr1:
     st.title(t["welcome"])
     st.markdown(f"##### **{t['tagline']}**")
+
 with col_hdr2:
     st.write("")
+    # Professional Native Top-Right CTI Copilot Popover
+    with st.popover("🤖 CTI Copilot & Live AI", help="Click to open live CTI assistant"):
+        st.markdown("#### 💡 Gemini CTI Copilot")
+        st.caption("Real-time reasoning assistant & workflow guide.")
+        
+        chat_box = st.container(height=280)
+        with chat_box:
+            for message in st.session_state.help_chat_history:
+                if message["role"] == "assistant":
+                    st.markdown(f"<div style='background:#f1f5f9; padding:6px 10px; border-radius:8px; margin-bottom:6px; color:#0f172a; font-size:0.85rem;'><b>Copilot:</b> {message['content']}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div style='background:#0284c7; padding:6px 10px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.85rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+
+        user_input = st.text_input("Ask copilot...", key="top_popover_chat_input", label_visibility="collapsed", placeholder="Ask a question...")
+        if user_input:
+            st.session_state.help_chat_history.append({"role": "user", "content": user_input})
+            reply = answer_copilot_reasoning(user_input)
+            st.session_state.help_chat_history.append({"role": "assistant", "content": reply})
+            
+            if st.session_state.voice_mode:
+                clean_speech = reply.replace('"', '').replace('\n', ' ')
+                st.components.v1.html(f"""
+                    <script>
+                    if ('speechSynthesis' in window) {{
+                        window.speechSynthesis.cancel();
+                        var utterance = new SpeechSynthesisUtterance("{clean_speech}");
+                        utterance.rate = 1.0;
+                        window.speechSynthesis.speak(utterance);
+                    }}
+                    </script>
+                """, height=0)
+            st.rerun()
+
     if st.session_state.sidebar_state == "collapsed":
         if st.button("🎛️ Open Control Panel"):
             st.session_state.sidebar_state = "expanded"
             st.rerun()
-    else:
-        if st.button("❌ Hide Control Panel"):
-            st.session_state.sidebar_state = "collapsed"
-            st.rerun()
 
-# LIVE STATUS HUD BADGE & AUDIO BAR
+# LIVE STATUS HUD BADGE
 st.markdown("""
     <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
         <div class="live-hud-badge">
@@ -775,8 +797,12 @@ if st.button(t["btn_process"], type="primary"):
 
             st.divider()
 
-            # LAYER 5: OUTPUT DELIVERABLES & INTERACTIVE SOC TABS
-            st.header(t["l5"])
+            # ==========================================
+            # LAYER 5: ISOLATED ELITE DELIVERABLE DASHBOARD
+            # ==========================================
+            st.markdown('<div class="layer5-isolated-dashboard">', unsafe_allow_html=True)
+            st.header(f"🚀 {t['l5']}")
+            st.caption("Elite Operational Dashboard & Automated Threat Intelligence Deliverables")
 
             col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
             col_m1.metric(t["target"], target_entity if target_entity else "Global / Unassigned")
@@ -792,7 +818,7 @@ if st.button(t["btn_process"], type="primary"):
 
             st.write("")
 
-            # ADVANCED SOC TABBED NAVIGATION
+            # ADVANCED SOC TABBED NAVIGATION INSIDE ISOLATED HERO CONTAINER
             soc_tab1, soc_tab2, soc_tab3, soc_tab4 = st.tabs([
                 "📊 Telemetry & Correlation",
                 "🔍 IoC Inspector",
@@ -927,84 +953,7 @@ if st.button(t["btn_process"], type="primary"):
                         mime="text/plain"
                     )
 
-# ==========================================
-# COMPACT TOP-RIGHT FLOATING COPILOT WIDGET
-# ==========================================
-st.markdown("""
-    <style>
-    .floating-copilot-container {
-        position: fixed;
-        top: 20px;
-        right: 25px;
-        z-index: 99999;
-        font-family: 'Inter', sans-serif;
-    }
-    .copilot-popup-box {
-        position: absolute;
-        top: 50px;
-        right: 0;
-        width: 340px;
-        height: 440px;
-        background: #ffffff !important;
-        color: #0f172a !important;
-        border-radius: 14px;
-        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
-        border: 2px solid #0284c7;
-        display: flex;
-        flex-direction: column;
-        padding: 12px;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-with st.container():
-    st.markdown('<div class="floating-copilot-container">', unsafe_allow_html=True)
-    
-    if not st.session_state.copilot_open:
-        if st.button("🤖 CTI Copilot", key="open_copilot_btn"):
-            st.session_state.copilot_open = True
-            st.rerun()
-    else:
-        st.markdown('<div class="copilot-popup-box">', unsafe_allow_html=True)
-        col_title, col_close = st.columns([4, 1])
-        with col_title:
-            st.markdown("<b style='color:#0f172a;'>🤖 Gemini CTI Copilot</b>", unsafe_allow_html=True)
-        with col_close:
-            if st.button("✕", key="close_copilot_btn"):
-                st.session_state.copilot_open = False
-                st.rerun()
-
-        chat_box = st.container(height=300)
-        with chat_box:
-            for message in st.session_state.help_chat_history:
-                if message["role"] == "assistant":
-                    st.markdown(f"<div style='background:#f1f5f9; padding:6px 10px; border-radius:8px; margin-bottom:6px; color:#0f172a; font-size:0.85rem;'><b>Copilot:</b> {message['content']}</div>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"<div style='background:#0284c7; padding:6px 10px; border-radius:8px; margin-bottom:6px; color:#ffffff; font-size:0.85rem; text-align:right;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
-
-        user_input = st.text_input("Ask a question...", key="copilot_chat_input_field", label_visibility="collapsed", placeholder="Ask copilot...")
-        if user_input:
-            st.session_state.help_chat_history.append({"role": "user", "content": user_input})
-            reply = answer_copilot_reasoning(user_input)
-            st.session_state.help_chat_history.append({"role": "assistant", "content": reply})
-            
-            if st.session_state.voice_mode:
-                clean_speech = reply.replace('"', '').replace('\n', ' ')
-                st.components.v1.html(f"""
-                    <script>
-                    if ('speechSynthesis' in window) {{
-                        window.speechSynthesis.cancel();
-                        var utterance = new SpeechSynthesisUtterance("{clean_speech}");
-                        utterance.rate = 1.0;
-                        window.speechSynthesis.speak(utterance);
-                    }}
-                    </script>
-                """, height=0)
-            st.rerun()
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("<br><br><br>", unsafe_allow_html=True)
 
