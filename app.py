@@ -83,31 +83,31 @@ if st.sidebar.button("❌ Hide Control Panel"):
     st.session_state.sidebar_state = "collapsed"
     st.rerun()
 
-# Dynamic Theme & Immersive Scrolling Cyber Background CSS with Transparent Containers
+# Dynamic Theme & Ultra-Glowing Cyber Background CSS
 if theme_choice == "Cyberpunk Neon Mode":
     bg_color_solid = "#030208"
-    bg_gradient = "radial-gradient(circle at 50% 10%, #1f0b3b 0%, #030208 80%)"
-    card_bg = "rgba(18, 15, 36, 0.78)"
+    bg_gradient = "radial-gradient(circle at 50% 10%, #2a0845 0%, #030208 85%)"
+    card_bg = "rgba(18, 15, 36, 0.85)"
     text_color = "#00ffcc"
     accent_color = "#ff0055"
-    border_color = "rgba(0, 255, 204, 0.4)"
-    glow_shadow = "0 0 25px rgba(255, 0, 85, 0.25)"
+    border_color = "#00ffcc"
+    glow_shadow = "0 0 20px rgba(0, 255, 204, 0.5), 0 0 40px rgba(255, 0, 85, 0.3)"
 elif theme_choice == "Clean Light Mode":
     bg_color_solid = "#f1f5f9"
-    bg_gradient = "linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%)"
-    card_bg = "rgba(255, 255, 255, 0.88)"
+    bg_gradient = "linear-gradient(135deg, #e0f2fe 0%, #cbd5e1 100%)"
+    card_bg = "rgba(255, 255, 255, 0.95)"
     text_color = "#0f172a"
-    accent_color = "#2563eb"
-    border_color = "rgba(37, 99, 235, 0.25)"
-    glow_shadow = "0 8px 25px rgba(37, 99, 235, 0.15)"
-else:  # Dark SOC Theme (Default)
-    bg_color_solid = "#050814"
-    bg_gradient = "radial-gradient(circle at 50% 15%, #0b1e3f 0%, #050814 85%)"
-    card_bg = "rgba(13, 20, 35, 0.78)"
-    text_color = "#f1f5f9"
+    accent_color = "#0284c7"
+    border_color = "#0284c7"
+    glow_shadow = "0 0 20px rgba(2, 132, 199, 0.3)"
+else:  # Dark SOC Theme (Default Glowing)
+    bg_color_solid = "#040714"
+    bg_gradient = "radial-gradient(circle at 50% 10%, #0d2147 0%, #040714 90%)"
+    card_bg = "rgba(10, 18, 36, 0.85)"
+    text_color = "#f8fafc"
     accent_color = "#38bdf8"
-    border_color = "rgba(56, 189, 248, 0.3)"
-    glow_shadow = "0 8px 30px rgba(56, 189, 248, 0.2)"
+    border_color = "#38bdf8"
+    glow_shadow = "0 0 18px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.15)"
 
 symbols = "🛡️ 🔒 🔑 ☣️ 👨‍💻 👁️ 🌐 📡 🛰️ 📱 ⚡ 💻"
 st.markdown(f"""
@@ -121,7 +121,7 @@ st.markdown(f"""
     
     /* 2. Floating Cyber Visuals Grid across the ENTIRE page height */
     .stApp::before {{
-        content: '{symbols * 30}';
+        content: '{symbols * 35}';
         position: fixed;
         top: 0; left: 0;
         width: 100vw; height: 100vh;
@@ -129,30 +129,79 @@ st.markdown(f"""
         grid-template-columns: repeat(12, 1fr);
         grid-template-rows: repeat(12, 1fr);
         font-size: 28px;
-        opacity: 0.12;
+        opacity: 0.18;
         justify-items: center; align-items: center;
         overflow: hidden;
         pointer-events: none;
         z-index: 0;
         letter-spacing: 30px;
         line-height: 2.5;
+        filter: drop-shadow(0 0 12px {accent_color});
     }}
 
-    /* 3. FORCE ALL STREAMLIT MAIN & BLOCK CONTAINERS TO BE FULLY TRANSPARENT */
+    /* 3. Transparent Main Streamlit Containers */
     .block-container, section.main, .stMainBlockContainer, [data-testid="stMain"], [data-testid="stVerticalBlock"] {{
         background: transparent !important;
     }}
 
-    /* 4. Sleek Sidebar */
+    /* 4. HIGH-TECH BEAUTIFIED CONTROL PANEL (SIDEBAR) */
     section[data-testid="stSidebar"] {{
-        background: #080e1e !important;
-        border-right: 1px solid #1e293b !important;
-        box-shadow: 6px 0px 25px rgba(0, 0, 0, 0.7);
+        background: linear-gradient(180deg, #060b18 0%, #030611 100%) !important;
+        border-right: 2px solid {border_color} !important;
+        box-shadow: 8px 0px 35px rgba(56, 189, 248, 0.3) !important;
         z-index: 100;
+        padding-top: 10px;
     }}
-    section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span {{
+    
+    /* Control Panel Section Header Glow */
+    section[data-testid="stSidebar"] h2 {{
+        font-family: 'Inter', system-ui, sans-serif !important;
+        letter-spacing: 0.1em !important;
+        text-shadow: 0 0 15px {accent_color}, 0 0 25px rgba(56, 189, 248, 0.6) !important;
+    }}
+
+    /* Sidebar Labels & Text Elements */
+    section[data-testid="stSidebar"] label, 
+    section[data-testid="stSidebar"] p, 
+    section[data-testid="stSidebar"] span {{
         color: #f1f5f9 !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.03em !important;
+    }}
+
+    /* Glassmorphism Wrapper Cards for Sidebar Dropdowns & Checkboxes */
+    section[data-testid="stSidebar"] div[data-baseweb="select"], 
+    section[data-testid="stSidebar"] div[data-testid="stCheckbox"] {{
+        background: rgba(10, 20, 42, 0.8) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1.5px solid {border_color} !important;
+        border-radius: 12px !important;
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.25) !important;
+        padding: 4px 8px !important;
+        margin-bottom: 8px !important;
+        transition: all 0.3s ease-in-out !important;
+    }}
+
+    section[data-testid="stSidebar"] div[data-baseweb="select"]:hover,
+    section[data-testid="stSidebar"] div[data-testid="stCheckbox"]:hover {{
+        border-color: #00ffcc !important;
+        box-shadow: 0 0 20px #00ffcc !important;
+    }}
+
+    /* Sidebar Hide/Action Buttons */
+    section[data-testid="stSidebar"] .stButton>button {{
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+        border: 1.5px solid {border_color} !important;
+        color: #f8fafc !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.3) !important;
+    }}
+
+    section[data-testid="stSidebar"] .stButton>button:hover {{
+        background: linear-gradient(135deg, {accent_color} 0%, #0284c7 100%) !important;
+        box-shadow: 0 0 25px {accent_color} !important;
+        color: #ffffff !important;
     }}
 
     /* 5. Typography & Headers */
@@ -160,97 +209,121 @@ st.markdown(f"""
         color: {text_color} !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }}
-    h1, h2, h3, h4 {{ color: {text_color} !important; font-weight: 700 !important; letter-spacing: -0.01em; }}
-    h1 {{ color: {accent_color} !important; text-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }}
+    h1, h2, h3, h4 {{ 
+        color: {text_color} !important; 
+        font-weight: 700 !important; 
+        letter-spacing: -0.01em; 
+    }}
+    h1 {{ 
+        color: {accent_color} !important; 
+        text-shadow: 0 0 20px {accent_color}, 0 0 35px rgba(56, 189, 248, 0.6); 
+    }}
+    h2, h3 {{
+        text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }}
 
-    /* 6. Translucent Glassmorphism Cards */
+    /* 6. High-Glow Main Inputs, Dropdowns, and Textareas */
+    textarea, input, select, div[data-baseweb="select"] > div {{
+        color: {text_color} !important;
+        background-color: rgba(6, 13, 28, 0.9) !important;
+        border: 1.5px solid {border_color} !important;
+        border-radius: 10px !important;
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.25), inset 0 0 8px rgba(56, 189, 248, 0.1) !important;
+        transition: all 0.3s ease-in-out !important;
+    }}
+    textarea:focus, input:focus, div[data-baseweb="select"]:focus-within {{
+        border-color: #00ffcc !important;
+        box-shadow: 0 0 25px #00ffcc, inset 0 0 12px rgba(0, 255, 204, 0.3) !important;
+        transform: translateY(-1px);
+    }}
+
+    /* 7. Ultra-Glowing Glassmorphism Cards & Tabs */
     div[data-testid="stMetric"], .stExpander, div.stTabs {{
         background: {card_bg} !important;
-        backdrop-filter: blur(18px) saturate(180%);
-        -webkit-backdrop-filter: blur(18px) saturate(180%);
-        border: 1px solid {border_color};
-        border-top: 3px solid {accent_color};
+        backdrop-filter: blur(20px) saturate(200%);
+        -webkit-backdrop-filter: blur(20px) saturate(200%);
+        border: 1px solid {border_color} !important;
+        border-top: 3px solid {accent_color} !important;
         border-radius: 14px;
         padding: 18px 22px;
-        box-shadow: {glow_shadow};
+        box-shadow: {glow_shadow} !important;
     }}
     div[data-testid="stMetric"]:hover {{
         transform: translateY(-4px);
-        box-shadow: 0 12px 35px rgba(56, 189, 248, 0.4);
+        box-shadow: 0 0 30px {accent_color} !important;
     }}
     div[data-testid="stMetricValue"] > div {{
         color: {accent_color} !important;
-        font-size: 2.1rem !important;
+        font-size: 2.2rem !important;
         font-weight: 800 !important;
+        text-shadow: 0 0 15px {accent_color};
     }}
 
-    /* 7. Inputs & Textareas with Glass Effect */
-    textarea, input {{
-        color: {text_color} !important;
-        background-color: {card_bg} !important;
-        border: 1px solid {border_color} !important;
-        border-radius: 10px !important;
-    }}
-    textarea:focus, input:focus {{
-        border-color: {accent_color} !important;
-        box-shadow: 0 0 15px {border_color} !important;
-    }}
-
-    /* 8. Glowing Action Buttons */
+    /* 8. Pulsing Electric Trigger Button */
     .stButton>button {{
         width: 100%;
-        font-weight: 700;
-        font-size: 1.15rem;
-        background: linear-gradient(135deg, {accent_color} 0%, #0284c7 100%) !important;
-        color: #ffffff !important;
+        font-weight: 800;
+        font-size: 1.2rem;
+        letter-spacing: 0.05em;
+        background: linear-gradient(135deg, #0284c7 0%, #38bdf8 50%, #00ffcc 100%) !important;
+        color: #030712 !important;
         border: none !important;
-        border-radius: 10px;
-        padding: 0.8rem 1.4rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        transition: all 0.25s ease;
+        border-radius: 12px;
+        padding: 0.95rem 1.5rem;
+        box-shadow: 0 0 25px rgba(56, 189, 248, 0.6), 0 0 40px rgba(0, 255, 204, 0.4);
+        transition: all 0.3s ease-in-out;
+        animation: pulse-button-glow 2.5s infinite alternate;
     }}
     .stButton>button:hover {{
-        opacity: 0.95;
         transform: scale(1.02);
-        box-shadow: 0 6px 25px {border_color};
+        box-shadow: 0 0 40px #00ffcc, 0 0 60px rgba(56, 189, 248, 0.8) !important;
+        color: #000000 !important;
     }}
 
-    /* 9. Live Pulse Indicator HUD */
+    @keyframes pulse-button-glow {{
+        0% {{ box-shadow: 0 0 20px rgba(56, 189, 248, 0.5), 0 0 30px rgba(0, 255, 204, 0.3); }}
+        100% {{ box-shadow: 0 0 35px rgba(56, 189, 248, 0.8), 0 0 55px rgba(0, 255, 204, 0.6); }}
+    }}
+
+    /* 9. Live HUD Status Badge & Dot */
     .live-hud-badge {{
         display: inline-flex;
         align-items: center;
-        background: rgba(16, 185, 129, 0.15);
-        border: 1px solid rgba(16, 185, 129, 0.4);
+        background: rgba(16, 185, 129, 0.2);
+        border: 1.5px solid #34d399;
         color: #34d399;
-        padding: 6px 14px;
+        padding: 6px 16px;
         border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        backdrop-filter: blur(10px);
+        font-size: 0.88rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        box-shadow: 0 0 18px rgba(52, 211, 153, 0.4);
+        backdrop-filter: blur(12px);
     }}
     .live-hud-dot {{
-        height: 8px; width: 8px;
+        height: 10px; width: 10px;
         background-color: #34d399;
         border-radius: 50%;
         display: inline-block;
-        margin-right: 8px;
-        box-shadow: 0 0 10px #34d399;
-        animation: pulse-animation 2s infinite;
+        margin-right: 10px;
+        box-shadow: 0 0 15px #34d399;
+        animation: pulse-animation 1.8s infinite;
     }}
     @keyframes pulse-animation {{
-        0% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }}
-        70% {{ transform: scale(1); box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }}
-        100% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
+        0% {{ transform: scale(0.9); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.8); }}
+        70% {{ transform: scale(1.15); box-shadow: 0 0 0 12px rgba(52, 211, 153, 0); }}
+        100% {{ transform: scale(0.9); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
     }}
 
     .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
     .developer-footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
-        background-color: #03050c; color: #64748b !important;
-        text-align: center; padding: 10px; font-size: 0.85rem !important;
+        background-color: #03050c; color: #38bdf8 !important;
+        text-shadow: 0 0 10px #38bdf8;
+        text-align: center; padding: 10px; font-size: 0.88rem !important;
+        font-weight: 700;
         border-top: 1px solid #1e293b; z-index: 999;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.1em;
     }}
     </style>
 """, unsafe_allow_html=True)
