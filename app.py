@@ -1,6 +1,7 @@
 import streamlit as st
 import re
 import json
+import html
 from datetime import datetime
 import pandas as pd
 import altair as alt
@@ -345,7 +346,7 @@ st.markdown(f"""
         100% {{ transform: scale(0.9); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
     }}
 
-    /* High Visibility IoC & Playbook Code Cards */
+    /* High Visibility IoC Display Cards */
     .ioc-box {{
         background: rgba(3, 7, 18, 0.95);
         border: 1px solid {border_color};
@@ -358,18 +359,30 @@ st.markdown(f"""
         box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
     }}
 
-    .playbook-box {{
-        background: #020617 !important;
-        color: #38bdf8 !important;
+    /* Highly Readable Cyber Terminal Playbook Container */
+    .playbook-container {{
+        background-color: #020617 !important;
         border: 1.5px solid {border_color} !important;
-        border-radius: 10px !important;
-        padding: 16px !important;
-        font-family: 'Courier New', Consolas, monospace !important;
-        font-size: 0.92rem !important;
+        border-radius: 12px !important;
+        padding: 18px 22px !important;
+        margin-top: 10px !important;
+        margin-bottom: 15px !important;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.95), 0 0 20px rgba(56, 189, 248, 0.25) !important;
+    }}
+
+    .playbook-line {{
+        font-family: 'Fira Code', 'Courier New', Consolas, monospace !important;
+        font-size: 0.95rem !important;
+        line-height: 1.6 !important;
+        color: #00ffcc !important;
         white-space: pre-wrap !important;
-        word-break: break-all !important;
-        box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(56, 189, 248, 0.25) !important;
-        margin-top: 10px;
+        word-wrap: break-word !important;
+        margin-bottom: 4px !important;
+    }}
+
+    .playbook-comment {{
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
     }}
 
     .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
@@ -480,28 +493,31 @@ def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
 
     return "\n".join(summary)
 
-# ADVANCED REMEDIATION PLAYBOOK GENERATOR
+# ADVANCED REMEDIATION PLAYBOOK GENERATOR (STRUCTURED HTML OUTPUT)
 def generate_remediation_playbooks(iocs, ttps):
     ips = iocs.get("IPv4", [])
     domains = iocs.get("Domains", [])
     hashes = iocs.get("SHA256", []) + iocs.get("MD5", [])
 
-    endpoint_script = ["# Windows PowerShell Host Isolation Commands"]
+    # Endpoint Script Lines
+    endpoint_lines = ["# Windows PowerShell Host Isolation Commands"]
     if hashes:
         for h in hashes:
-            endpoint_script.append(f"Get-Process | Where-Object {{ $_.Path -like '*{h[:8]}*' }} | Stop-Process -Force")
-    endpoint_script.append("Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True")
-    endpoint_script.append("# Linux Host Isolation (IPTables)")
-    endpoint_script.append("sudo iptables -P INPUT DROP; sudo iptables -P OUTPUT DROP; sudo iptables -P FORWARD DROP")
+            endpoint_lines.append(f"Get-Process | Where-Object {{ $_.Path -like '*{h[:8]}*' }} | Stop-Process -Force")
+    endpoint_lines.append("Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True")
+    endpoint_lines.append("# Linux Host Isolation (IPTables)")
+    endpoint_lines.append("sudo iptables -P INPUT DROP; sudo iptables -P OUTPUT DROP; sudo iptables -P FORWARD DROP")
 
-    network_script = ["# Active Perimeter Firewall Rules (C2 Blocklist)"]
+    # Network Script Lines
+    network_lines = ["# Active Perimeter Firewall Rules (C2 Blocklist)"]
     for ip in ips:
-        network_script.append(f"netsh advfirewall firewall add rule name='Block C2 {ip}' dir=in action=block remoteip={ip}")
-        network_script.append(f"sudo iptables -A INPUT -s {ip} -j DROP")
+        network_lines.append(f"netsh advfirewall firewall add rule name='Block C2 {ip}' dir=in action=block remoteip={ip}")
+        network_lines.append(f"sudo iptables -A INPUT -s {ip} -j DROP")
     for d in domains:
-        network_script.append(f"# DNS RPZ / Sinkhole entry: {d} -> 0.0.0.0")
+        network_lines.append(f"# DNS RPZ / Sinkhole entry: {d} -> 0.0.0.0")
 
-    identity_script = [
+    # Identity Script Lines
+    identity_lines = [
         "# Active Directory / Azure AD Revocation & Containment",
         "Revoke-AzureADUserAllRefreshToken -ObjectId <Target_User_GUID>",
         "Set-ADUser -Identity <Target_User> -Enabled $false",
@@ -509,19 +525,31 @@ def generate_remediation_playbooks(iocs, ttps):
         "Update-KbtgtAccountPassword"
     ]
 
-    siem_queries = ["// KQL Query (Microsoft Sentinel / Defender)"]
+    # SIEM Queries Lines
+    siem_lines = ["// KQL Query (Microsoft Sentinel / Defender)"]
     if ips:
         ip_str = '", "'.join(ips)
-        siem_queries.append(f'DeviceNetworkEvents | where RemoteIP in ("{ip_str}")')
+        siem_lines.append(f'DeviceNetworkEvents | where RemoteIP in ("{ip_str}")')
     if hashes:
         hash_str = '", "'.join(hashes)
-        siem_queries.append(f'DeviceProcessEvents | where SHA256 in ("{hash_str}") or MD5 in ("{hash_str}")')
+        siem_lines.append(f'DeviceProcessEvents | where SHA256 in ("{hash_str}") or MD5 in ("{hash_str}")')
+
+    def render_playbook_html(lines):
+        html_output = ['<div class="playbook-container">']
+        for line in lines:
+            escaped = html.escape(line)
+            if line.startswith("#") or line.startswith("//"):
+                html_output.append(f'<div class="playbook-line playbook-comment">{escaped}</div>')
+            else:
+                html_output.append(f'<div class="playbook-line">⚡ {escaped}</div>')
+        html_output.append('</div>')
+        return "\n".join(html_output)
 
     return {
-        "endpoint": "\n".join(endpoint_script),
-        "network": "\n".join(network_script),
-        "identity": "\n".join(identity_script),
-        "siem": "\n".join(siem_queries)
+        "endpoint": render_playbook_html(endpoint_lines),
+        "network": render_playbook_html(network_lines),
+        "identity": render_playbook_html(identity_lines),
+        "siem": render_playbook_html(siem_lines)
     }
 
 # FORMAL EXECUTIVE TEXT REPORT GENERATOR
@@ -954,13 +982,13 @@ if st.button(t["btn_process"], type="primary"):
                 ])
 
                 with pb_tab1:
-                    st.markdown(f'<pre class="playbook-box">{playbooks["endpoint"]}</pre>', unsafe_allow_html=True)
+                    st.markdown(playbooks["endpoint"], unsafe_allow_html=True)
                 with pb_tab2:
-                    st.markdown(f'<pre class="playbook-box">{playbooks["network"]}</pre>', unsafe_allow_html=True)
+                    st.markdown(playbooks["network"], unsafe_allow_html=True)
                 with pb_tab3:
-                    st.markdown(f'<pre class="playbook-box">{playbooks["identity"]}</pre>', unsafe_allow_html=True)
+                    st.markdown(playbooks["identity"], unsafe_allow_html=True)
                 with pb_tab4:
-                    st.markdown(f'<pre class="playbook-box">{playbooks["siem"]}</pre>', unsafe_allow_html=True)
+                    st.markdown(playbooks["siem"], unsafe_allow_html=True)
 
             with soc_tab4:
                 st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
