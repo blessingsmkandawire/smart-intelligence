@@ -6,6 +6,11 @@ from datetime import datetime
 import pandas as pd
 import altair as alt
 import requests
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 
 # 1. SESSION STATE FOR THEME, SIDEBAR, & CHAT
 if "sidebar_state" not in st.session_state:
@@ -76,7 +81,6 @@ LANGUAGES = {
 selected_lang = st.sidebar.selectbox("🌐 Interface Language", list(LANGUAGES.keys()))
 t = LANGUAGES[selected_lang]
 
-# Theme Switcher
 def on_theme_change():
     pass
 
@@ -86,7 +90,6 @@ theme_choice = st.sidebar.selectbox(
     on_change=on_theme_change
 )
 
-# Organized Dropdown / Expander for Control Panel Options
 with st.sidebar.expander("🛠️ Advanced Platform & API Settings", expanded=False):
     enable_live_enrichment = st.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
     defang_iocs = st.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)")
@@ -126,7 +129,7 @@ elif theme_choice == "Clean Light Mode":
     copilot_text = "#0f172a"
     copilot_bubble_user = "#0284c7"
     copilot_bubble_assistant = "#f1f5f9"
-else:  # Dark SOC Theme
+else:
     bg_color_solid = "#040714"
     bg_gradient = "radial-gradient(circle at 50% 10%, #0d2147 0%, #040714 90%)"
     card_bg = "rgba(10, 18, 36, 0.82)"
@@ -140,53 +143,40 @@ else:  # Dark SOC Theme
     copilot_bubble_user = "#38bdf8"
     copilot_bubble_assistant = "#101d38"
 
-# LIVE GLOWING ANIMATED BACKGROUND INJECTION
+# 3. LIVE GLOWING ANIMATED BACKGROUND INJECTION
 st.components.v1.html(f"""
     <canvas id="cyberCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1;"></canvas>
     <script>
     const canvas = document.getElementById('cyberCanvas');
     const ctx = canvas.getContext('2d');
-
     function resize() {{
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     }}
     resize();
     window.addEventListener('resize', resize);
-
     const chars = '01 sudo nmap ssh port 80 443 22 cti ioc cve mitre 0xFF APT29 root payload {{}} <> //';
     const charArr = chars.split(' ');
     const fontSize = 14;
     const columns = Math.floor(window.innerWidth / fontSize);
     const drops = [];
-
-    for (let i = 0; i < columns; i++) {{
-        drops[i] = Math.random() * -100;
-    }}
-
+    for (let i = 0; i < columns; i++) {{ drops[i] = Math.random() * -100; }}
     function draw() {{
         ctx.fillStyle = 'rgba(4, 7, 20, 0.08)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
         ctx.fillStyle = '{matrix_glow_color}';
         ctx.font = fontSize + 'px monospace';
         ctx.shadowBlur = 8;
         ctx.shadowColor = '{matrix_glow_color}';
-
         for (let i = 0; i < drops.length; i++) {{
             const text = charArr[Math.floor(Math.random() * charArr.length)];
             const x = i * fontSize;
             const y = drops[i] * fontSize;
-
             ctx.fillText(text, x, y);
-
-            if (y > canvas.height && Math.random() > 0.975) {{
-                drops[i] = 0;
-            }}
+            if (y > canvas.height && Math.random() > 0.975) {{ drops[i] = 0; }}
             drops[i]++;
         }}
     }}
-
     setInterval(draw, 45);
     </script>
 """, height=0)
@@ -199,11 +189,9 @@ st.markdown(f"""
         background-image: {bg_gradient} !important;
         background-attachment: fixed !important;
     }}
-
     .block-container, section.main, .stMainBlockContainer, [data-testid="stMain"], [data-testid="stVerticalBlock"] {{
         background: transparent !important;
     }}
-
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #060b18 0%, #030611 100%) !important;
         border-right: 2px solid {border_color} !important;
@@ -212,7 +200,6 @@ st.markdown(f"""
         padding-top: 10px;
         overflow: visible !important;
     }}
-    
     section[data-testid="stSidebar"] [data-baseweb="popover"], 
     section[data-testid="stSidebar"] [data-baseweb="menu"], 
     div[data-baseweb="select"] ul {{
@@ -220,13 +207,11 @@ st.markdown(f"""
         background-color: #060d1c !important;
         border: 1.5px solid {border_color} !important;
     }}
-
     section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h4 {{
         font-family: 'Inter', system-ui, sans-serif !important;
         letter-spacing: 0.1em !important;
         text-shadow: 0 0 15px {accent_color}, 0 0 25px rgba(56, 189, 248, 0.6) !important;
     }}
-
     section[data-testid="stSidebar"] label, 
     section[data-testid="stSidebar"] p, 
     section[data-testid="stSidebar"] span {{
@@ -234,20 +219,12 @@ st.markdown(f"""
         font-weight: 700 !important;
         letter-spacing: 0.03em !important;
     }}
-
     html, body, p, span, div, label, .stMarkdown, .stText {{
         color: {text_color} !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }}
-    h1, h2, h3, h4 {{ 
-        color: {text_color} !important; 
-        font-weight: 700 !important; 
-    }}
-    h1 {{ 
-        color: {accent_color} !important; 
-        text-shadow: 0 0 20px {accent_color}, 0 0 35px rgba(56, 189, 248, 0.6); 
-    }}
-
+    h1, h2, h3, h4 {{ color: {text_color} !important; font-weight: 700 !important; }}
+    h1 {{ color: {accent_color} !important; text-shadow: 0 0 20px {accent_color}, 0 0 35px rgba(56, 189, 248, 0.6); }}
     textarea, input, select, div[data-baseweb="select"] > div {{
         color: {text_color} !important;
         background-color: rgba(6, 13, 28, 0.9) !important;
@@ -255,7 +232,6 @@ st.markdown(f"""
         border-radius: 10px !important;
         box-shadow: 0 0 12px rgba(56, 189, 248, 0.25), inset 0 0 8px rgba(56, 189, 248, 0.1) !important;
     }}
-
     div[data-testid="stMetric"], .stExpander, div.stTabs {{
         background: {card_bg} !important;
         backdrop-filter: blur(20px) saturate(200%);
@@ -265,7 +241,6 @@ st.markdown(f"""
         padding: 18px 22px;
         box-shadow: {glow_shadow} !important;
     }}
-
     .soc-dashboard-hero {{
         background: linear-gradient(135deg, rgba(11, 19, 43, 0.95) 0%, rgba(4, 9, 22, 0.98) 100%) !important;
         border: 2px solid {border_color} !important;
@@ -276,7 +251,6 @@ st.markdown(f"""
         margin-top: 15px !important;
         margin-bottom: 40px !important;
     }}
-
     .soc-metric-card {{
         background: rgba(15, 23, 42, 0.85);
         border: 1px solid {border_color};
@@ -285,7 +259,6 @@ st.markdown(f"""
         text-align: center;
         box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
     }}
-
     .stButton>button {{
         width: 100%;
         font-weight: 800;
@@ -297,7 +270,6 @@ st.markdown(f"""
         padding: 0.95rem 1.5rem;
         box-shadow: 0 0 25px rgba(56, 189, 248, 0.6), 0 0 40px rgba(0, 255, 204, 0.4);
     }}
-
     .live-hud-badge {{
         display: inline-flex;
         align-items: center;
@@ -324,7 +296,6 @@ st.markdown(f"""
         70% {{ transform: scale(1.15); box-shadow: 0 0 0 12px rgba(52, 211, 153, 0); }}
         100% {{ transform: scale(0.9); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
     }}
-
     .ioc-box {{
         background: rgba(3, 7, 18, 0.95);
         border: 1px solid {border_color};
@@ -335,7 +306,6 @@ st.markdown(f"""
         font-family: 'Courier New', monospace;
         color: #38bdf8;
     }}
-
     .playbook-container {{
         background-color: #020617 !important;
         border: 1.5px solid {border_color} !important;
@@ -344,7 +314,6 @@ st.markdown(f"""
         margin-top: 10px !important;
         margin-bottom: 15px !important;
     }}
-
     .playbook-line {{
         font-family: 'Fira Code', 'Courier New', Consolas, monospace !important;
         font-size: 0.95rem !important;
@@ -354,12 +323,10 @@ st.markdown(f"""
         word-wrap: break-word !important;
         margin-bottom: 4px !important;
     }}
-
     .playbook-comment {{
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }}
-
     .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
     .developer-footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
@@ -373,7 +340,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# Helper Utilities
+# Helper Utilities & Validations
 def defang(text):
     if not text:
         return text
@@ -383,20 +350,53 @@ def defang(text):
     text = re.sub(r'([a-zA-Z0-9-]+\.)+([a-zA-Z]{2,})', lambda m: m.group(0).replace('.', '[.]'), text)
     return text
 
+def is_valid_public_ip(ip_str):
+    """Filters out invalid octets (>255), loopbacks, APIPA, and private reserved ranges."""
+    clean_ip = ip_str.replace('[.]', '.')
+    parts = clean_ip.split('.')
+    if len(parts) != 4:
+        return False
+    try:
+        octets = [int(p) for p in parts]
+    except ValueError:
+        return False
+    
+    # Check octet limits (0-255)
+    for o in octets:
+        if o < 0 or o > 255:
+            return False
+            
+    # Filter out local loopbacks, broadcast, and APIPA
+    if octets[0] == 0 or octets[0] == 127 or octets == [255, 255, 255, 255]:
+        return False
+    if octets[0] == 169 and octets[1] == 254:
+        return False
+        
+    # Filter out private RFC 1918 ranges to keep threat rules focused on external C2
+    if octets[0] == 10:
+        return False
+    if octets[0] == 192 and octets[1] == 168:
+        return False
+    if octets[0] == 172 and (16 <= octets[1] <= 31):
+        return False
+        
+    return True
+
 def enrich_ip_data(ip_list, vt_key):
     results = []
-    for ip in ip_list[:3]:
+    valid_ips = [ip for ip in ip_list if is_valid_public_ip(ip)]
+    for ip in valid_ips[:3]:
         try:
-            res = requests.get(f"http://ip-api.com/json/{ip}", timeout=3).json()
+            res = requests.get(f"http://ip-api.com/json/{ip.replace('[.]', '.')}", timeout=3).json()
             if res.get("status") == "success":
                 results.append(f"IP {ip}: {res.get('org', 'Unknown Org')} ({res.get('country', 'Unknown')}) - ISP: {res.get('isp')}")
         except Exception:
             pass
             
-    if vt_key and ip_list:
+    if vt_key and valid_ips:
         try:
             headers = {"x-apikey": vt_key}
-            sample_ip = ip_list[0].replace('[.]', '.')
+            sample_ip = valid_ips[0].replace('[.]', '.')
             vt_res = requests.get(f"https://www.virustotal.com/api/v3/ip_addresses/{sample_ip}", headers=headers, timeout=3)
             if vt_res.status_code == 200:
                 stats = vt_res.json().get("data", {}).get("attributes", {}).get("last_analysis_stats", {})
@@ -409,14 +409,16 @@ def enrich_ip_data(ip_list, vt_key):
 def generate_yara_rule(target_entity, iocs):
     rule_name = re.sub(r'[^a-zA-Z0-9_]', '_', target_entity or "Smart_Intelligence_Threat")
     hashes = iocs.get("SHA256", []) + iocs.get("MD5", [])
-    ips = iocs.get("IPv4", [])
+    valid_ips = [ip for ip in iocs.get("IPv4", []) if is_valid_public_ip(ip)]
     
     strings_section = []
     for i, h in enumerate(hashes):
         strings_section.append(f'        $hash_{i} = "{h}"')
-    for i, ip in enumerate(ips):
+    for i, ip in enumerate(valid_ips[:5]):  # limit to top 5 valid IPs to keep rules clean
         strings_section.append(f'        $ip_{i} = "{ip}"')
         
+    condition_logic = "any of ($hash*)" if hashes else ("any of them" if strings_section else '        $default_string = "powershell"')
+    
     return f"""rule {rule_name}_Detection {{
     meta:
         description = "Automated YARA rule generated by Smart Intelligence CTI Platform"
@@ -426,8 +428,80 @@ def generate_yara_rule(target_entity, iocs):
     strings:
 {chr(10).join(strings_section) if strings_section else '        $default_string = "powershell"'}
     condition:
-        any of them
+        {condition_logic}
 }}"""
+
+# GENERATE PDF REPORT USING REPORTLAB
+def generate_pdf_report(target_entity, timeframe, intel_goal, risk_level, accuracy_score, iocs, ttps):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+    story = []
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        'DocTitle', parent=styles['Heading1'], fontSize=20, textColor=colors.HexColor('#0284c7'), alignment=1, spaceAfter=15
+    )
+    subtitle_style = ParagraphStyle(
+        'DocSubtitle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#475569'), alignment=1, spaceAfter=20
+    )
+    heading2 = ParagraphStyle(
+        'SectionHeading', parent=styles['Heading2'], fontSize=14, textColor=colors.HexColor('#0f172a'), spaceBefore=12, spaceAfter=8
+    )
+    body_style = ParagraphStyle(
+        'BodyDark', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#334155'), spaceAfter=6
+    )
+
+    story.append(Paragraph("<b>SMART INTELLIGENCE | EXECUTIVE THREAT REPORT</b>", title_style))
+    story.append(Paragraph(f"Generated on {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')} | Author: blessingsmkandawire", subtitle_style))
+    story.append(Spacer(1, 10))
+
+    meta_data = [
+        [Paragraph("<b>Target Scope:</b>", body_style), Paragraph(target_entity or "Global Infrastructure", body_style)],
+        [Paragraph("<b>Intelligence Goal:</b>", body_style), Paragraph(intel_goal or "Threat Analysis", body_style)],
+        [Paragraph("<b>Timeframe:</b>", body_style), Paragraph(timeframe, body_style)],
+        [Paragraph("<b>Risk Rating:</b>", body_style), Paragraph(f"<font color='red'><b>{risk_level}</b></font>", body_style)],
+        [Paragraph("<b>Confidence Score:</b>", body_style), Paragraph(f"{accuracy_score}%", body_style)]
+    ]
+    t_meta = Table(meta_data, colWidths=[150, 380])
+    t_meta.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f8fafc')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#cbd5e1')),
+        ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#e2e8f0')),
+        ('PADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(t_meta)
+    story.append(Spacer(1, 15))
+
+    story.append(Paragraph("<b>Indicators of Compromise (IoC) Summary</b>", heading2))
+    
+    ioc_data = [
+        ["Indicator Type", "Extracted Count", "Sample Indicators"],
+        ["IPv4 Addresses", str(len(iocs.get("IPv4", []))), ", ".join(iocs.get("IPv4", [])[:2]) or "None"],
+        ["Domains", str(len(iocs.get("Domains", []))), ", ".join(iocs.get("Domains", [])[:2]) or "None"],
+        ["Hashes (SHA256/MD5)", str(len(iocs.get("SHA256", [])) + len(iocs.get("MD5", []))), "Cryptographic Signatures Flagged"],
+        ["CVE Vulnerabilities", str(len(iocs.get("CVE", []))), ", ".join(iocs.get("CVE", [])) or "None"]
+    ]
+    
+    t_ioc = Table(ioc_data, colWidths=[140, 110, 280])
+    t_ioc.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0284c7')),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#94a3b8')),
+        ('PADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(t_ioc)
+    story.append(Spacer(1, 15))
+
+    story.append(Paragraph("<b>MITRE ATT&CK Tactics Mapped</b>", heading2))
+    if ttps:
+        for ttp in ttps:
+            story.append(Paragraph(f"• {ttp}", body_style))
+    else:
+        story.append(Paragraph("No direct high-risk MITRE TTPs flagged in current sample stream.", body_style))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
 
 # COPILOT REASONING ASSISTANT
 def answer_copilot_reasoning(user_prompt):
@@ -458,7 +532,7 @@ def answer_copilot_reasoning(user_prompt):
             "1. **Layer 1:** Specify your target scope.\n"
             "2. **Layer 2:** Ingest logs, OSINT, or CSINT in the ingestion tabs.\n"
             "3. **Pipeline Execution:** Click **Execute 5-Layer Intelligence Pipeline**.\n"
-            "4. **Layer 5:** Access executive briefings, IoC tables, playbooks, and exports!"
+            "4. **Layer 5:** Access executive briefings, IoC tables, playbooks, and PDF exports!"
         )
     elif any(k in prompt_lower for k in ["hello", "hi", "hey", "who are you"]):
         return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis or security workflows today?"
@@ -851,6 +925,10 @@ if st.button(t["btn_process"], type="primary"):
             text_report = generate_executive_text_report(
                 target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs, ttps, live_enrichment
             )
+            
+            pdf_buffer = generate_pdf_report(
+                target_entity, timeframe, intel_goal, risk_level, accuracy_score, iocs, ttps
+            )
 
             st.success("5-Layer Intelligence Pipeline Execution Complete!")
 
@@ -924,7 +1002,6 @@ if st.button(t["btn_process"], type="primary"):
                     
                     if graph_nodes:
                         gdf = pd.DataFrame(graph_nodes)
-                        
                         base = alt.Chart(gdf).encode(
                             x=alt.X('Target_Entity:N', title="Target Environment Scope"),
                             y=alt.Y('Indicator:N', title="Extracted Threat Artifacts"),
@@ -932,14 +1009,11 @@ if st.button(t["btn_process"], type="primary"):
                             size=alt.Size('Risk_Weight:Q', scale=alt.Scale(range=[150, 400]), legend=None),
                             tooltip=['Target_Entity', 'Indicator', 'Category', 'Risk_Weight']
                         )
-                        
                         points = base.mark_circle(opacity=0.85, stroke='#00ffcc', strokeWidth=1.5)
                         rules = base.mark_rule(strokeDash=[4, 4], opacity=0.4, color='#38bdf8')
-                        
                         correlation_chart = (rules + points).properties(height=280).configure_axis(
                             gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
                         ).configure_view(strokeWidth=0)
-                        
                         st.altair_chart(correlation_chart, use_container_width=True)
                     else:
                         st.info("Insufficient IoC nodes to render correlation graph.")
@@ -1008,11 +1082,11 @@ if st.button(t["btn_process"], type="primary"):
 
             with soc_tab4:
                 st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
-                dl_col1, dl_col2, dl_col3 = st.columns(3)
+                dl_col1, dl_col2, dl_col3, dl_col4 = st.columns(4)
                 
                 with dl_col1:
                     st.download_button(
-                        label="📄 Download Executive Briefing (.txt)",
+                        label="📄 Download Text Brief (.txt)",
                         data=text_report,
                         file_name="executive_threat_briefing.txt",
                         mime="text/plain"
@@ -1020,7 +1094,7 @@ if st.button(t["btn_process"], type="primary"):
                     
                 with dl_col2:
                     st.download_button(
-                        label="📥 Download STIX 2.1 Bundle (.json)",
+                        label="📥 Download STIX 2.1 (.json)",
                         data=json.dumps(stix_bundle, indent=4),
                         file_name="smart_intelligence_stix21.json",
                         mime="application/json"
@@ -1028,10 +1102,18 @@ if st.button(t["btn_process"], type="primary"):
 
                 with dl_col3:
                     st.download_button(
-                        label="🛡️ Download YARA Rules (.yara)",
+                        label="🛡️ Download YARA (.yara)",
                         data=yara_code,
                         file_name="smart_intelligence_rule.yara",
                         mime="text/plain"
+                    )
+
+                with dl_col4:
+                    st.download_button(
+                        label="📕 Download Executive PDF (.pdf)",
+                        data=pdf_buffer,
+                        file_name="executive_threat_report.pdf",
+                        mime="application/pdf"
                     )
 
                 st.divider()
