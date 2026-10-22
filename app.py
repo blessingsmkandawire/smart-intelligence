@@ -7,8 +7,9 @@ import pandas as pd
 import altair as alt
 import requests
 import time
+import os
 
-# 1. SESSION STATE FOR THEME, SIDEBAR, & CHAT
+# 1. SESSION STATE FOR THEME, SIDEBAR, CHAT, & FEEDBACK LOGS
 if "sidebar_state" not in st.session_state:
     st.session_state.sidebar_state = "expanded"
 
@@ -25,6 +26,9 @@ if "help_chat_history" not in st.session_state:
     st.session_state.help_chat_history = [
         {"role": "assistant", "content": "👋 **Hello! I'm your Gemini CTI Copilot.** Ask me anything about your threat pipeline or security workflows!"}
     ]
+
+if "feedback_submissions" not in st.session_state:
+    st.session_state.feedback_submissions = []
 
 # PAGE CONFIGURATION
 st.set_page_config(
@@ -180,7 +184,6 @@ st.markdown(f"""
         padding-top: 10px;
         overflow: visible !important;
     }}
-    /* EXPANDER FIX: Dark background and white text for sidebar settings */
     section[data-testid="stSidebar"] .stExpander {{
         background-color: #060d1c !important;
         border: 1.5px solid {border_color} !important;
@@ -335,6 +338,13 @@ st.markdown(f"""
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }}
+    .feedback-card {{
+        background-color: rgba(6, 13, 28, 0.95) !important;
+        border: 1.5px solid #38bdf8 !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        margin-top: 15px !important;
+    }}
     .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
     .developer-footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
@@ -405,6 +415,28 @@ def enrich_ip_data(ip_list, vt_key):
             pass
             
     return results
+
+def save_feedback_entry(name, role, rating, helpful_features, comments):
+    entry = {
+        "timestamp": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC'),
+        "name": name if name else "Anonymous Tester",
+        "role": role,
+        "rating": rating,
+        "features": helpful_features,
+        "comments": comments
+    }
+    st.session_state.feedback_submissions.append(entry)
+    try:
+        log_file = "system_feedback_log.json"
+        existing = []
+        if os.path.exists(log_file):
+            with open(log_file, "r") as f:
+                existing = json.load(f)
+        existing.append(entry)
+        with open(log_file, "w") as f:
+            json.dump(existing, f, indent=4)
+    except Exception:
+        pass
 
 def generate_yara_rule(target_entity, iocs):
     rule_name = re.sub(r'[^a-zA-Z0-9_]', '_', target_entity or "Smart_Intelligence_Threat")
@@ -482,7 +514,7 @@ def answer_copilot_reasoning(user_prompt):
             "2. **Layer 2:** Ingest logs or threat reports.\n"
             "3. **Layer 3:** Review extraction & normalization metrics.\n"
             "4. **Layer 4:** Analyze AI threat correlation.\n"
-            "5. **Layer 5:** Access playbooks and download intelligence deliverables."
+            "5. **Layer 5:** Access playbooks, export deliverables, and submit platform feedback!"
         )
     elif any(k in prompt_lower for k in ["hello", "hi", "hey"]):
         return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis today?"
@@ -733,7 +765,7 @@ with col_hdr2:
             st.session_state.sidebar_state = "expanded"
             st.rerun()
 
-# WELCOME BANNER (REPLACES THE EMPTY GLOW CONTAINER)
+# WELCOME BANNER
 st.markdown('<div class="welcome-banner">🛡️ WELCOME TO THE SMART INTELLIGENCE THREAT DASHBOARD</div>', unsafe_allow_html=True)
 
 # LIVE STATUS HUD BADGE
@@ -1080,6 +1112,61 @@ if st.button(t["btn_process"], type="primary"):
                             st.error(f"Webhook responded with status code: {resp.status_code}")
                     except Exception as e:
                         st.error(f"Failed to dispatch webhook: {e}")
+
+            st.divider()
+            
+            # ==========================================
+            # IN-APP BETA TESTER FEEDBACK & EVALUATION FORM
+            # ==========================================
+            st.subheader("📝 User Feedback & System Evaluation Form")
+            st.caption("Help us improve the Smart Intelligence CTI Platform by sharing your testing feedback!")
+
+            with st.form(key="user_feedback_form", clear_on_submit=True):
+                fb_col1, fb_col2 = st.columns(2)
+                with fb_col1:
+                    tester_name = st.text_input("Your Name / Handle (Optional):", placeholder="e.g. Alex M.")
+                with fb_col2:
+                    tester_role = st.selectbox("Your Role / Background:", [
+                        "SOC Analyst / Incident Responder",
+                        "Cybersecurity Student / Researcher",
+                        "Security Engineer / Architect",
+                        "General Tech Enthusiast / Tester"
+                    ])
+
+                rating = st.slider("⭐ How would you rate the system's performance and usability?", 1, 5, 5)
+
+                helpful_features = st.multiselect(
+                    "💡 Which features did you test or find most useful?",
+                    [
+                        "Multi-Source Log Ingestion (Layer 2)",
+                        "Automated Regex & IoC Extraction (Layer 3)",
+                        "Live Threat Feed Enrichment (IP/ASN)",
+                        "AI Threat Synthesis & Risk Scoring (Layer 4)",
+                        "Containment Playbooks (PowerShell / Firewall / KQL)",
+                        "YARA Rule & STIX 2.1 File Exports",
+                        "Plain-Language Instruction Guide Export"
+                    ],
+                    default=["Automated Regex & IoC Extraction (Layer 3)", "Containment Playbooks (PowerShell / Firewall / KQL)"]
+                )
+
+                feedback_comments = st.text_area(
+                    "💬 Comments, Bugs Experienced, or Suggestions for Improvement:",
+                    placeholder="Tell us what worked well, what was confusing, or what features you'd like to see next..."
+                )
+
+                submit_feedback = st.form_submit_button("📩 Submit Feedback")
+
+                if submit_feedback:
+                    save_feedback_entry(tester_name, tester_role, rating, helpful_features, feedback_comments)
+                    st.success("🎉 Thank you for your feedback! Your evaluation response has been recorded.")
+
+            # ANALYST REVIEW EXPANDER (ADMIN VIEW)
+            if st.session_state.feedback_submissions:
+                with st.expander("📊 View Submitted Feedback Log (Admin/Analyst View)", expanded=False):
+                    avg_rating = round(sum(f['rating'] for f in st.session_state.feedback_submissions) / len(st.session_state.feedback_submissions), 1)
+                    st.markdown(f"**Total Submissions:** `{len(st.session_state.feedback_submissions)}` | **Average Rating:** ⭐ `{avg_rating}/5`")
+                    fb_df = pd.DataFrame(st.session_state.feedback_submissions)
+                    st.dataframe(fb_df, use_container_width=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
 
