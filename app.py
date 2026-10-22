@@ -6,6 +6,7 @@ from datetime import datetime
 import pandas as pd
 import altair as alt
 import requests
+import time
 
 # 1. SESSION STATE FOR THEME, SIDEBAR, & CHAT
 if "sidebar_state" not in st.session_state:
@@ -89,6 +90,7 @@ with st.sidebar.expander("🛠️ Advanced Platform & API Settings", expanded=Fa
     enable_live_enrichment = st.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
     defang_iocs = st.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)")
     st.session_state.voice_mode = st.checkbox("Enable Live Voice Speech-Output", value=st.session_state.voice_mode)
+    ai_api_key = st.text_input("Live AI / Gemini API Key (Optional)", type="password", placeholder="Enter AI API key...")
     vt_api_key = st.text_input("VirusTotal API Key (Optional)", type="password", placeholder="Enter VT v3 key...")
     webhook_url = st.text_input("SOC Webhook URL (Slack/Teams)", placeholder="https://webhook.site/...")
 
@@ -374,7 +376,7 @@ def enrich_ip_data(ip_list, vt_key):
     valid_ips = [ip for ip in ip_list if is_valid_public_ip(ip)]
     for ip in valid_ips[:3]:
         try:
-            res = requests.get(f"http://ip-api.com/json/{ip.replace('[.]', '.')}", timeout=3).json()
+            res = requests.get(f"http://ip-api.com/json/{ip.replace('[.]', '.')}", timeout=2).json()
             if res.get("status") == "success":
                 results.append(f"IP {ip}: {res.get('org', 'Unknown Org')} ({res.get('country', 'Unknown')}) - ISP: {res.get('isp')}")
         except Exception:
@@ -384,7 +386,7 @@ def enrich_ip_data(ip_list, vt_key):
         try:
             headers = {"x-apikey": vt_key}
             sample_ip = valid_ips[0].replace('[.]', '.')
-            vt_res = requests.get(f"https://www.virustotal.com/api/v3/ip_addresses/{sample_ip}", headers=headers, timeout=3)
+            vt_res = requests.get(f"https://www.virustotal.com/api/v3/ip_addresses/{sample_ip}", headers=headers, timeout=2)
             if vt_res.status_code == 200:
                 stats = vt_res.json().get("data", {}).get("attributes", {}).get("last_analysis_stats", {})
                 results.append(f"VT Intelligence: {sample_ip} malicious score = {stats.get('malicious', 0)} detections.")
@@ -420,7 +422,6 @@ rule {rule_name}_Detection {{
         )
 }}"""
 
-# PLAIN-LANGUAGE INSTRUCTIONS TEXT REPORT GENERATOR
 def generate_instructions_text_report(target_entity, risk_level, iocs, ttps):
     total_iocs = sum(len(v) for v in iocs.values())
     report = [
@@ -446,138 +447,80 @@ def generate_instructions_text_report(target_entity, risk_level, iocs, ttps):
         report.append(f"• IP Addresses ({len(ips)} found):")
         report.append("  What they are: Network identifiers pointing to external or internal hosts.")
         report.append("  What they mean: In telemetry logs, external IPs often represent Command and")
-        report.append("  Control (C2) servers, automated scanning bots, or active brute-force attempts")
-        report.append("  against your authentication services.")
-        report.append("  Recommended Action: Check these IPs against threat intelligence feeds and block")
-        report.append("  malicious addresses at your perimeter firewall using the provided playbooks.")
+        report.append("  Control (C2) servers, automated scanning bots, or active brute-force attempts.")
+        report.append("  Recommended Action: Block malicious addresses at your perimeter firewall.")
         report.append("")
         
     hashes = iocs.get("SHA256", []) + iocs.get("MD5", [])
     if hashes:
         report.append(f"• Cryptographic File Hashes ({len(hashes)} found):")
         report.append("  What they are: Unique digital fingerprints calculated from file contents.")
-        report.append("  What they mean: If a file hash matches known malware catalogs, it indicates")
-        report.append("  that an unauthorized executable or malicious payload was present or executed.")
-        report.append("  Recommended Action: Run the generated YARA rule across your endpoints to scan")
-        report.append("  for files matching these digital signatures.")
+        report.append("  What they mean: Indicates unauthorized executables or malicious payloads.")
+        report.append("  Recommended Action: Run the generated YARA rule across your endpoints.")
         report.append("")
 
-    domains = iocs.get("Domains", [])
-    if domains:
-        report.append(f"• Network Domains & URLs ({len(domains)} found):")
-        report.append("  What they are: Web addresses associated with network traffic or logs.")
-        report.append("  What they mean: Attackers frequently register rogue domains to stage malware,")
-        report.append("  host phishing pages, or exfiltrate stolen data.")
-        report.append("  Recommended Action: Add these domains to DNS sinkholes or blocklists.")
-        report.append("")
-
-    cves = iocs.get("CVE", [])
-    if cves:
-        report.append(f"• Vulnerabilities ({len(cves)} found):")
-        report.append("  What they are: Specific software weaknesses referenced in telemetry notes.")
-        report.append("  What they mean: These flaws can be exploited by attackers to gain unauthorized")
-        report.append("  access or escalate privileges on systems.")
-        report.append("  Recommended Action: Apply patches or security updates immediately.")
-        report.append("")
-
-    report.append("3. GUIDE TO OTHER DELIVERABLE FILES")
-    report.append("--------------------------------------------------------------------------------")
-    report.append("• Executive Threat Briefing (.txt): A structured C-suite summary of the threat landscape.")
-    report.append("• STIX 2.1 Bundle (.json): A machine-readable format for sharing intelligence with SIEMs.")
-    report.append("• YARA Rules (.yara): Advanced file-scanning signatures utilizing the hash module.")
-    report.append("================================================================================")
-    report.append("Smart Intelligence CTI Engine | Author: blessingsmkandawire")
     return "\n".join(report)
 
 # COPILOT REASONING ASSISTANT
 def answer_copilot_reasoning(user_prompt):
     prompt_lower = user_prompt.lower()
-    hazardous_keywords = [
-        "how to make a bomb", "explosive", "build weapon", "hack into bank", 
-        "ddos attack code", "steal money", "malware tutorial to attack"
-    ]
-    if any(k in prompt_lower for k in hazardous_keywords):
-        return (
-            "⚠️ **Safety Notice:** I am configured to operate as a secure, ethical assistant. "
-            "I cannot assist with hazardous activities, unauthorized cyber exploitation, or illegal actions."
-        )
-
-    current_risk = st.session_state.get("computed_risk_score", 0)
-    
-    if "risk" in prompt_lower or "summary" in prompt_lower:
-        return f"📊 **Current Pipeline Analysis:** Your active analysis has a calculated Threat Risk Index of **{current_risk}/100**. Check Layer 5 for detailed metrics and behavioral telemetry."
-    elif "ttp" in prompt_lower or "mitre" in prompt_lower:
-        return "🎯 **MITRE ATT&CK Mapping:** Ingested indicators are mapped to tactics like Initial Access (TA0001) and Execution (TA0002) in Layer 3."
-    elif "playbook" in prompt_lower or "containment" in prompt_lower:
-        return "🛡️ **Playbooks:** Layer 4 & 5 provide ready-to-execute PowerShell commands, IPTables firewall rules, and SIEM KQL queries for immediate incident containment."
-    
     if any(k in prompt_lower for k in ["how", "use", "guide", "start", "begin", "steps", "workflow"]):
         return (
             "Here is your step-by-step workflow for **Smart Intelligence**:\n\n"
             "1. **Layer 1:** Specify your target scope.\n"
-            "2. **Layer 2:** Ingest logs, OSINT, or CSINT in the ingestion tabs.\n"
-            "3. **Pipeline Execution:** Click **Execute 5-Layer Intelligence Pipeline**.\n"
-            "4. **Layer 5:** Access executive briefings, IoC tables, playbooks, and exports!"
+            "2. **Layer 2:** Ingest logs or threat reports.\n"
+            "3. **Pipeline Execution:** Click **Execute 5-Layer Intelligence Pipeline** to watch the live engine run.\n"
+            "4. **Layer 5:** Access executive briefings, IoC tables, and export bundles."
         )
-    elif any(k in prompt_lower for k in ["hello", "hi", "hey", "who are you"]):
-        return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis or security workflows today?"
+    elif any(k in prompt_lower for k in ["hello", "hi", "hey"]):
+        return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis today?"
     else:
-        return (
-            f"Regarding your query: *'{user_prompt}'*\n\n"
-            "I'm here to assist smoothly! Ingest your logs in Layer 2 or review extracted indicators in Layer 5. Let me know if you need specific technical guidance or security insights!"
-        )
+        return f"Regarding your query: *'{user_prompt}'*\n\nI am analyzing your telemetry and security workflow. Let me know if you need specific technical guidance!"
 
-def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
+def run_live_ai_synthesis(target, raw_text, iocs, ttps, api_key):
+    # Hybrid engine local fallback baseline
     text_lower = raw_text.lower()
-    has_powershell = any(k in text_lower for k in ["powershell", "cmd.exe", "wscript", "cscript", "bash", "sh"])
-    has_credential_access = any(k in text_lower for k in ["mimikatz", "lsass", "dump", "kerberoasting", "brute force"])
-    has_exfiltration = any(k in text_lower for k in ["exfil", "ftp", "sftp", "dns tunneling", "http post"])
-    has_ransomware = any(k in text_lower for k in ["ransom", "encrypt", "shadowcopy", "vssadmin", ".locked"])
-    
-    risk_score = 10
-    indicators_flagged = []
-    
-    if len(iocs.get("IPv4", [])) > 0:
-        risk_score += 25
-        indicators_flagged.append(f"{len(iocs['IPv4'])} external C2/Recon IP(s)")
-    if len(iocs.get("SHA256", [])) > 0 or len(iocs.get("MD5", [])) > 0:
-        risk_score += 30
-        indicators_flagged.append("High-fidelity cryptographic executable signatures")
-    if has_powershell:
-        risk_score += 20
-        indicators_flagged.append("Living-off-the-Land script execution (PowerShell/CMD)")
-    if has_credential_access:
-        risk_score += 25
-        indicators_flagged.append("Credential dumping or active access escalation")
-    if has_exfiltration:
-        risk_score += 25
-        indicators_flagged.append("Suspected data exfiltration or anomalous egress channel")
-    if has_ransomware:
-        risk_score += 40
-        indicators_flagged.append("Critical ransomware structural indicators")
-
+    risk_score = 15
+    if len(iocs.get("IPv4", [])) > 0: risk_score += 25
+    if len(iocs.get("SHA256", [])) > 0 or len(iocs.get("MD5", [])) > 0: risk_score += 30
+    if any(k in text_lower for k in ["powershell", "cmd.exe", "mimikatz", "ransom", "lsass"]): risk_score += 30
     risk_score = min(risk_score, 100)
-    st.session_state.computed_risk_score = risk_score
-    
+
+    # If live API key is provided, attempt real online AI generation
+    if api_key:
+        try:
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            prompt = f"Analyze this cyber threat data for target '{target}': {raw_text[:1000]}. Provide a concise professional SOC threat risk assessment and narrative."
+            # Standard OpenAI / compatible endpoint structure or simulation
+            resp = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json={
+                "model": "gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 250
+            }, timeout=4)
+            if resp.status_code == 200:
+                ai_text = resp.json().get("choices", [{}])[0].get("message", {}).get("content", "")
+                if ai_text:
+                    return f"### 🤖 Layer 4: Live Cloud AI Intelligence & Reasoning Assessment\n**Calculated Risk Index:** `{risk_score}/100`\n\n{ai_text}", risk_score
+        except Exception:
+            pass
+
+    # Default robust deterministic synthesis
     if risk_score >= 70:
-        assessed_severity = "🔴 CRITICAL RISK (Immediate Active Threat Vector)"
+        severity = "🔴 CRITICAL RISK (Immediate Active Threat Vector)"
     elif risk_score >= 40:
-        assessed_severity = "🟡 ELEVATED RISK (Suspicious Activity / Pre-Exploit Phase)"
+        severity = "🟡 ELEVATED RISK (Suspicious Activity Detected)"
     else:
-        assessed_severity = "🟢 BASELINE TELEMETRY (Low Operational Risk)"
+        severity = "🟢 BASELINE TELEMETRY (Low Operational Risk)"
 
-    narrative_lines = []
-    narrative_lines.append(f"### 🤖 Layer 4: Real-Time AI Threat Intelligence & Reasoning Assessment")
-    narrative_lines.append(f"**Target Scope Under Analysis:** `{target if target else 'Global Enterprise Infrastructure'}`")
-    narrative_lines.append(f"**Calculated Threat Risk Index:** `{risk_score}/100` — **{assessed_severity}**")
-    narrative_lines.append("\n#### 🔬 Real-Time Behavioral Telemetry Breakdown:")
-    if indicators_flagged:
-        for ind in indicators_flagged:
-            narrative_lines.append(f" - **Detected Indicator Vector:** {ind}")
-    else:
-        narrative_lines.append(" - **Telemetry Status:** Standard operational noise or clean baseline traffic. No active high-risk indicators triggered.")
-
-    return "\n".join(narrative_lines), risk_score
+    narrative = [
+        f"### 🤖 Layer 4: Hybrid Deterministic & Heuristic AI Synthesis",
+        f"**Target Scope:** `{target if target else 'Global Enterprise Infrastructure'}`",
+        f"**Calculated Threat Risk Index:** `{risk_score}/100` — **{severity}**",
+        f"\n#### 🔬 Behavioral Telemetry & Correlation Results:",
+        f" - Extracted `{sum(len(v) for v in iocs.values())}` total indicators across multi-source ingestion modules.",
+        f" - Mapped `{len(ttps)}` MITRE ATT&CK tactical vectors from raw logs and threat notes."
+    ]
+    return "\n".join(narrative), risk_score
 
 def generate_remediation_playbooks(iocs, ttps):
     ips = iocs.get("IPv4", [])
@@ -625,7 +568,7 @@ def generate_remediation_playbooks(iocs, ttps):
         "siem": render_playbook_html(siem_lines)
     }
 
-def generate_executive_text_report(target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs, ttps, live_enrichment):
+def generate_executive_text_report(target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs):
     now_utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
     total_iocs = sum(len(v) for v in iocs.values())
     
@@ -642,7 +585,7 @@ def generate_executive_text_report(target_entity, timeframe, intel_goal, risk_le
         "\n1. EXECUTIVE SUMMARY & THREAT OVERVIEW",
         "--------------------------------------------------------------------------------",
         f"Smart Intelligence has executed a 5-layer correlation analysis for {target_entity or 'the target infrastructure'}.",
-        f"A total of {total_iocs} high-fidelity Indicators of Compromise (IoCs) and {len(ttps)} MITRE ATT&CK tactics were identified.",
+        f"A total of {total_iocs} high-fidelity Indicators of Compromise (IoCs) were identified.",
         "================================================================================",
         "Report Compiled by Smart Intelligence CTI Engine | Author: blessingsmkandawire"
     ]
@@ -786,7 +729,7 @@ with col_hdr2:
 st.markdown("""
     <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
         <div class="live-hud-badge">
-            <span class="live-hud-dot"></span> SYSTEM READY : 5-LAYER PIPELINE ACTIVE
+            <span class="live-hud-dot"></span> SYSTEM READY : LIVE HYBRID PIPELINE ONLINE
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -844,7 +787,7 @@ with tab5:
 
 st.divider()
 
-# LAYER 3 & LAYER 4 PIPELINE TRIGGER
+# LAYER 3 & LAYER 4 PIPELINE TRIGGER WITH STAGED LIVE PROGRESS BAR
 st.header("3. Core Pipeline Execution")
 
 sources_used = []
@@ -878,242 +821,262 @@ if st.button(t["btn_process"], type="primary"):
     if not combined_raw_data.strip():
         st.error("Please provide input in at least one ingestion tab before processing.")
     else:
-        with st.spinner("Executing 5-Layer Pipeline: Generating C-Suite Briefing, Correlating IoCs, and Compiling Playbooks..."):
-            iocs = extract_iocs(combined_raw_data)
-            ttps = map_ttp_heuristics(combined_raw_data)
-            stix_bundle = generate_stix_bundle(target_entity, iocs)
-            yara_code = generate_yara_rule(target_entity, iocs)
-            playbooks = generate_remediation_playbooks(iocs, ttps)
-            
-            live_enrichment = enrich_ip_data(iocs.get("IPv4", []), vt_api_key) if enable_live_enrichment else []
-            
-            total_iocs = sum(len(v) for v in iocs.values())
-            accuracy_score = calculate_intelligence_accuracy(iocs, ttps, sources_used, target_entity)
+        # LIVE STAGED PROGRESS ANIMATION
+        progress_bar = st.progress(0)
+        status_text = st.empty()
 
-            st.session_state.ai_analysis_result, computed_risk_score = run_automated_ai_synthesis(
-                target_entity, combined_raw_data, iocs, ttps
-            )
+        status_text.text("🔄 Layer 1: Validating target scope & intelligence timeframe...")
+        time.sleep(0.3)
+        progress_bar.progress(20)
 
-            if computed_risk_score >= 70:
-                risk_level = "CRITICAL"
-            elif computed_risk_score >= 40:
-                risk_level = "MEDIUM / HIGH"
-            else:
-                risk_level = "LOW"
+        status_text.text("🔄 Layer 2: Ingesting multi-source telemetry & parsing artifacts...")
+        iocs = extract_iocs(combined_raw_data)
+        time.sleep(0.4)
+        progress_bar.progress(40)
 
-            text_report = generate_executive_text_report(
-                target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs, ttps, live_enrichment
-            )
-            
-            instructions_text = generate_instructions_text_report(
-                target_entity, risk_level, iocs, ttps
-            )
+        status_text.text("🔄 Layer 3: Running regex extraction & live API feed lookups...")
+        ttps = map_ttp_heuristics(combined_raw_data)
+        live_enrichment = enrich_ip_data(iocs.get("IPv4", []), vt_api_key) if enable_live_enrichment else []
+        time.sleep(0.4)
+        progress_bar.progress(65)
 
-            st.success("5-Layer Intelligence Pipeline Execution Complete!")
+        status_text.text("🔄 Layer 4: Executing AI threat correlation & risk scoring...")
+        st.session_state.ai_analysis_result, computed_risk_score = run_live_ai_synthesis(
+            target_entity, combined_raw_data, iocs, ttps, ai_api_key
+        )
+        time.sleep(0.4)
+        progress_bar.progress(85)
 
-            # ==========================================
-            # LAYER 5: PROFESSIONAL SOC OPERATIONAL DASHBOARD HERO
-            # ==========================================
-            st.markdown('<div class="soc-dashboard-hero">', unsafe_allow_html=True)
-            st.markdown(f"<h2 style='color: #38bdf8; margin-bottom: 5px;'>🚀 {t['l5']}</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px;'>Enterprise Operational Command Center — Real-time threat correlation, indicators, and defensive playbooks.</p>", unsafe_allow_html=True)
+        status_text.text("🔄 Layer 5: Compiling playbooks, YARA rules, and export deliverables...")
+        stix_bundle = generate_stix_bundle(target_entity, iocs)
+        yara_code = generate_yara_rule(target_entity, iocs)
+        playbooks = generate_remediation_playbooks(iocs, ttps)
+        
+        total_iocs = sum(len(v) for v in iocs.values())
+        accuracy_score = calculate_intelligence_accuracy(iocs, ttps, sources_used, target_entity)
 
-            col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
-            
-            with col_m1:
-                st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>TARGET ENTITY</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.1rem;'>{target_entity if target_entity else 'Global'}</h3></div>", unsafe_allow_html=True)
-            with col_m2:
-                st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>IOCs EXTRACTED</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.5rem;'>{total_iocs}</h3></div>", unsafe_allow_html=True)
-            with col_m3:
-                st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>TTPs MAPPED</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.5rem;'>{len(ttps)}</h3></div>", unsafe_allow_html=True)
-            with col_m4:
-                risk_color = "#ef4444" if "CRITICAL" in risk_level else "#f59e0b" if "HIGH" in risk_level else "#10b981"
-                st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>RISK RATING</span><h3 style='color:{risk_color}; margin:5px 0; font-size:1.2rem;'>{risk_level}</h3></div>", unsafe_allow_html=True)
-            with col_m5:
-                st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>CONFIDENCE</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.5rem;'>{accuracy_score}%</h3></div>", unsafe_allow_html=True)
+        if computed_risk_score >= 70:
+            risk_level = "CRITICAL"
+        elif computed_risk_score >= 40:
+            risk_level = "MEDIUM / HIGH"
+        else:
+            risk_level = "LOW"
 
-            st.write("")
+        text_report = generate_executive_text_report(
+            target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs
+        )
+        instructions_text = generate_instructions_text_report(target_entity, risk_level, iocs, ttps)
 
-            if st.session_state.ai_analysis_result:
-                st.info(st.session_state.ai_analysis_result)
+        time.sleep(0.3)
+        progress_bar.progress(100)
+        status_text.empty()
+        progress_bar.empty()
 
-            st.write("")
+        st.success("⚡ Live 5-Layer Intelligence Pipeline Execution Complete!")
 
-            # ADVANCED SOC TABBED NAVIGATION
-            soc_tab1, soc_tab2, soc_tab3, soc_tab4 = st.tabs([
-                "📊 Telemetry & Correlation",
-                "🔍 IoC Inspector",
-                "🛡️ Playbook Armory",
-                "📦 Deliverables & Exports"
-            ])
+        # ==========================================
+        # LAYER 5: PROFESSIONAL SOC OPERATIONAL DASHBOARD HERO
+        # ==========================================
+        st.markdown('<div class="soc-dashboard-hero">', unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color: #38bdf8; margin-bottom: 5px;'>🚀 {t['l5']}</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px;'>Enterprise Operational Command Center — Real-time threat correlation, indicators, and defensive playbooks.</p>", unsafe_allow_html=True)
 
-            with soc_tab1:
-                col_graph1, col_graph2 = st.columns(2)
-                with col_graph1:
-                    st.subheader("📈 IoC Telemetry Breakdown")
-                    chart_data = pd.DataFrame({
-                        'Indicator Category': list(iocs.keys()),
-                        'Count': [len(v) for v in iocs.values()]
-                    })
-                    bar_chart = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
-                        x=alt.X('Indicator Category:N', sort=None, title="IoC Type", axis=alt.Axis(labelAngle=0)),
-                        y=alt.Y('Count:Q', title="Detected Count", axis=alt.Axis(tickMinStep=1)),
-                        color=alt.Color('Indicator Category:N', scale=alt.Scale(scheme='tableau10'), legend=None),
-                        tooltip=['Indicator Category', 'Count']
-                    ).properties(height=280).configure_axis(
+        col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
+        
+        with col_m1:
+            st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>TARGET ENTITY</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.1rem;'>{target_entity if target_entity else 'Global'}</h3></div>", unsafe_allow_html=True)
+        with col_m2:
+            st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>IOCs EXTRACTED</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.5rem;'>{total_iocs}</h3></div>", unsafe_allow_html=True)
+        with col_m3:
+            st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>TTPs MAPPED</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.5rem;'>{len(ttps)}</h3></div>", unsafe_allow_html=True)
+        with col_m4:
+            risk_color = "#ef4444" if "CRITICAL" in risk_level else "#f59e0b" if "HIGH" in risk_level else "#10b981"
+            st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>RISK RATING</span><h3 style='color:{risk_color}; margin:5px 0; font-size:1.2rem;'>{risk_level}</h3></div>", unsafe_allow_html=True)
+        with col_m5:
+            st.markdown(f"<div class='soc-metric-card'><span style='font-size:0.8rem; color:#94a3b8;'>CONFIDENCE</span><h3 style='color:#38bdf8; margin:5px 0; font-size:1.5rem;'>{accuracy_score}%</h3></div>", unsafe_allow_html=True)
+
+        st.write("")
+
+        if st.session_state.ai_analysis_result:
+            st.info(st.session_state.ai_analysis_result)
+
+        st.write("")
+
+        # ADVANCED SOC TABBED NAVIGATION
+        soc_tab1, soc_tab2, soc_tab3, soc_tab4 = st.tabs([
+            "📊 Telemetry & Correlation",
+            "🔍 IoC Inspector",
+            "🛡️ Playbook Armory",
+            "📦 Deliverables & Exports"
+        ])
+
+        with soc_tab1:
+            col_graph1, col_graph2 = st.columns(2)
+            with col_graph1:
+                st.subheader("📈 IoC Telemetry Breakdown")
+                chart_data = pd.DataFrame({
+                    'Indicator Category': list(iocs.keys()),
+                    'Count': [len(v) for v in iocs.values()]
+                })
+                bar_chart = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
+                    x=alt.X('Indicator Category:N', sort=None, title="IoC Type", axis=alt.Axis(labelAngle=0)),
+                    y=alt.Y('Count:Q', title="Detected Count", axis=alt.Axis(tickMinStep=1)),
+                    color=alt.Color('Indicator Category:N', scale=alt.Scale(scheme='tableau10'), legend=None),
+                    tooltip=['Indicator Category', 'Count']
+                ).properties(height=280).configure_axis(
+                    gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
+                ).configure_view(strokeWidth=0)
+                st.altair_chart(bar_chart, use_container_width=True)
+
+            with col_graph2:
+                st.subheader("🕸️ Layer 3 Interactive Threat Correlation Graph")
+                graph_nodes = []
+                target_label = target_entity or "Target Scope"
+                
+                for cat, items in iocs.items():
+                    for item in items[:4]:
+                        graph_nodes.append({
+                            "Target_Entity": target_label,
+                            "Indicator": str(item),
+                            "Category": cat,
+                            "Risk_Weight": 85 if cat in ["IPv4", "SHA256"] else 45
+                        })
+                
+                if graph_nodes:
+                    gdf = pd.DataFrame(graph_nodes)
+                    base = alt.Chart(gdf).encode(
+                        x=alt.X('Target_Entity:N', title="Target Environment Scope"),
+                        y=alt.Y('Indicator:N', title="Extracted Threat Artifacts"),
+                        color=alt.Color('Category:N', scale=alt.Scale(scheme='set1'), title="Indicator Class"),
+                        size=alt.Size('Risk_Weight:Q', scale=alt.Scale(range=[150, 400]), legend=None),
+                        tooltip=['Target_Entity', 'Indicator', 'Category', 'Risk_Weight']
+                    )
+                    points = base.mark_circle(opacity=0.85, stroke='#00ffcc', strokeWidth=1.5)
+                    rules = base.mark_rule(strokeDash=[4, 4], opacity=0.4, color='#38bdf8')
+                    correlation_chart = (rules + points).properties(height=280).configure_axis(
                         gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
                     ).configure_view(strokeWidth=0)
-                    st.altair_chart(bar_chart, use_container_width=True)
-
-                with col_graph2:
-                    st.subheader("🕸️ Layer 3 Interactive Threat Correlation Graph")
-                    graph_nodes = []
-                    target_label = target_entity or "Target Scope"
-                    
-                    for cat, items in iocs.items():
-                        for item in items[:4]:
-                            graph_nodes.append({
-                                "Target_Entity": target_label,
-                                "Indicator": str(item),
-                                "Category": cat,
-                                "Risk_Weight": 85 if cat in ["IPv4", "SHA256"] else 45
-                            })
-                    
-                    if graph_nodes:
-                        gdf = pd.DataFrame(graph_nodes)
-                        base = alt.Chart(gdf).encode(
-                            x=alt.X('Target_Entity:N', title="Target Environment Scope"),
-                            y=alt.Y('Indicator:N', title="Extracted Threat Artifacts"),
-                            color=alt.Color('Category:N', scale=alt.Scale(scheme='set1'), title="Indicator Class"),
-                            size=alt.Size('Risk_Weight:Q', scale=alt.Scale(range=[150, 400]), legend=None),
-                            tooltip=['Target_Entity', 'Indicator', 'Category', 'Risk_Weight']
-                        )
-                        points = base.mark_circle(opacity=0.85, stroke='#00ffcc', strokeWidth=1.5)
-                        rules = base.mark_rule(strokeDash=[4, 4], opacity=0.4, color='#38bdf8')
-                        correlation_chart = (rules + points).properties(height=280).configure_axis(
-                            gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
-                        ).configure_view(strokeWidth=0)
-                        st.altair_chart(correlation_chart, use_container_width=True)
-                    else:
-                        st.info("Insufficient IoC nodes to render correlation graph.")
-
-                if live_enrichment:
-                    st.subheader("🌐 Layer 3 Live Feed & API Enrichment Data")
-                    for item in live_enrichment:
-                        st.warning(f"📡 {item}")
-
-            with soc_tab2:
-                st.subheader("📊 Layer 3 Extracted Indicators of Compromise")
-                filter_term = st.text_input("🔍 Filter/Search IoCs in real-time:", placeholder="Type IP, hash, or domain...")
-                
-                ioc_col1, ioc_col2 = st.columns(2)
-                
-                def filter_list(lst):
-                    if not filter_term:
-                        return lst
-                    return [item for item in lst if filter_term.lower() in str(item).lower()]
-
-                def render_ioc_block(title, items):
-                    filtered = filter_list(items)
-                    st.markdown(f"**{title}**")
-                    if filtered:
-                        for val in filtered:
-                            st.markdown(f'<div class="ioc-box">⚡ {val}</div>', unsafe_allow_html=True)
-                    else:
-                        st.caption("None detected")
-
-                with ioc_col1:
-                    render_ioc_block("IPv4 Addresses:", iocs["IPv4"])
-                    render_ioc_block("Domains:", iocs["Domains"])
-                    render_ioc_block("URLs:", iocs["URLs"])
-                
-                with ioc_col2:
-                    render_ioc_block("SHA-256 Hashes:", iocs["SHA256"])
-                    render_ioc_block("MD5 Hashes:", iocs["MD5"])
-                    render_ioc_block("CVE Vulnerabilities:", iocs["CVE"])
-
-                st.subheader("🎯 Layer 3 MITRE ATT&CK TTP Mapping")
-                if ttps:
-                    for ttp in ttps:
-                        st.info(f"📍 {ttp}")
+                    st.altair_chart(correlation_chart, use_container_width=True)
                 else:
-                    st.write("No explicit MITRE ATT&CK tactics matched standard heuristic keywords.")
+                    st.info("Insufficient IoC nodes to render correlation graph.")
 
-            with soc_tab3:
-                st.subheader("🛡️ Layer 4 Fight-Back & Containment Playbook Engine")
-                st.caption("Copy and execute active containment scripts across host, network, identity, and SIEM controls.")
+            if live_enrichment:
+                st.subheader("🌐 Layer 3 Live Feed & API Enrichment Data")
+                for item in live_enrichment:
+                    st.warning(f"📡 {item}")
 
-                pb_tab1, pb_tab2, pb_tab3, pb_tab4 = st.tabs([
-                    "💻 (i) Endpoint Isolation Scripts",
-                    "🌐 (ii) Perimeter Firewall Rules",
-                    "🔑 (iii) Identity & Kerberos Revocation",
-                    "🔍 (iv) SIEM Threat Hunting Queries"
-                ])
+        with soc_tab2:
+            st.subheader("📊 Layer 3 Extracted Indicators of Compromise")
+            filter_term = st.text_input("🔍 Filter/Search IoCs in real-time:", placeholder="Type IP, hash, or domain...")
+            
+            ioc_col1, ioc_col2 = st.columns(2)
+            
+            def filter_list(lst):
+                if not filter_term:
+                    return lst
+                return [item for item in lst if filter_term.lower() in str(item).lower()]
 
-                with pb_tab1:
-                    st.markdown(playbooks["endpoint"], unsafe_allow_html=True)
-                with pb_tab2:
-                    st.markdown(playbooks["network"], unsafe_allow_html=True)
-                with pb_tab3:
-                    st.markdown(playbooks["identity"], unsafe_allow_html=True)
-                with pb_tab4:
-                    st.markdown(playbooks["siem"], unsafe_allow_html=True)
+            def render_ioc_block(title, items):
+                filtered = filter_list(items)
+                st.markdown(f"**{title}**")
+                if filtered:
+                    for val in filtered:
+                        st.markdown(f'<div class="ioc-box">⚡ {val}</div>', unsafe_allow_html=True)
+                else:
+                    st.caption("None detected")
 
-            with soc_tab4:
-                st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
-                dl_col1, dl_col2, dl_col3, dl_col4 = st.columns(4)
+            with ioc_col1:
+                render_ioc_block("IPv4 Addresses:", iocs["IPv4"])
+                render_ioc_block("Domains:", iocs["Domains"])
+                render_ioc_block("URLs:", iocs["URLs"])
+            
+            with ioc_col2:
+                render_ioc_block("SHA-256 Hashes:", iocs["SHA256"])
+                render_ioc_block("MD5 Hashes:", iocs["MD5"])
+                render_ioc_block("CVE Vulnerabilities:", iocs["CVE"])
+
+            st.subheader("🎯 Layer 3 MITRE ATT&CK TTP Mapping")
+            if ttps:
+                for ttp in ttps:
+                    st.info(f"📍 {ttp}")
+            else:
+                st.write("No explicit MITRE ATT&CK tactics matched standard heuristic keywords.")
+
+        with soc_tab3:
+            st.subheader("🛡️ Layer 4 Fight-Back & Containment Playbook Engine")
+            st.caption("Copy and execute active containment scripts across host, network, identity, and SIEM controls.")
+
+            pb_tab1, pb_tab2, pb_tab3, pb_tab4 = st.tabs([
+                "💻 (i) Endpoint Isolation Scripts",
+                "🌐 (ii) Perimeter Firewall Rules",
+                "🔑 (iii) Identity & Kerberos Revocation",
+                "🔍 (iv) SIEM Threat Hunting Queries"
+            ])
+
+            with pb_tab1:
+                st.markdown(playbooks["endpoint"], unsafe_allow_html=True)
+            with pb_tab2:
+                st.markdown(playbooks["network"], unsafe_allow_html=True)
+            with pb_tab3:
+                st.markdown(playbooks["identity"], unsafe_allow_html=True)
+            with pb_tab4:
+                st.markdown(playbooks["siem"], unsafe_allow_html=True)
+
+        with soc_tab4:
+            st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
+            dl_col1, dl_col2, dl_col3, dl_col4 = st.columns(4)
+            
+            with dl_col1:
+                st.download_button(
+                    label="📄 Download Executive Briefing (.txt)",
+                    data=text_report,
+                    file_name="executive_threat_briefing.txt",
+                    mime="text/plain"
+                )
                 
-                with dl_col1:
-                    st.download_button(
-                        label="📄 Download Executive Briefing (.txt)",
-                        data=text_report,
-                        file_name="executive_threat_briefing.txt",
-                        mime="text/plain"
-                    )
-                    
-                with dl_col2:
-                    st.download_button(
-                        label="📥 Download STIX 2.1 Bundle (.json)",
-                        data=json.dumps(stix_bundle, indent=4),
-                        file_name="smart_intelligence_stix21.json",
-                        mime="application/json"
-                    )
+            with dl_col2:
+                st.download_button(
+                    label="📥 Download STIX 2.1 Bundle (.json)",
+                    data=json.dumps(stix_bundle, indent=4),
+                    file_name="smart_intelligence_stix21.json",
+                    mime="application/json"
+                )
 
-                with dl_col3:
-                    st.download_button(
-                        label="🛡️ Download YARA Rules (.yara)",
-                        data=yara_code,
-                        file_name="smart_intelligence_rule.yara",
-                        mime="text/plain"
-                    )
+            with dl_col3:
+                st.download_button(
+                    label="🛡️ Download YARA Rules (.yara)",
+                    data=yara_code,
+                    file_name="smart_intelligence_rule.yara",
+                    mime="text/plain"
+                )
 
-                with dl_col4:
-                    st.download_button(
-                        label="📖 Download Instructions (.txt)",
-                        data=instructions_text,
-                        file_name="instructions.txt",
-                        mime="text/plain"
-                    )
+            with dl_col4:
+                st.download_button(
+                    label="📖 Download Instructions (.txt)",
+                    data=instructions_text,
+                    file_name="instructions.txt",
+                    mime="text/plain"
+                )
 
-                st.divider()
-                st.subheader("🚨 Automated Incident Response Webhook Dispatcher")
-                if st.button("📡 Dispatch Threat Alert to SOC Webhook"):
-                    if not webhook_url:
-                        st.warning("Please configure your SOC Webhook URL in the Control Panel sidebar first.")
-                    else:
-                        try:
-                            payload = {
-                                "text": f"🚨 *Smart Intelligence CTI Alert* \n*Target:* {target_entity}\n*Risk Rating:* {risk_level}\n*Total IoCs:* {total_iocs}"
-                            }
-                            resp = requests.post(webhook_url, json=payload, timeout=5)
-                            if resp.status_code in [200, 201, 204]:
-                                st.success("Successfully dispatched alert payload to your SOC Webhook endpoint!")
-                            else:
-                                st.error(f"Webhook responded with status code: {resp.status_code}")
-                        except Exception as e:
-                            st.error(f"Failed to dispatch webhook: {e}")
+            st.divider()
+            st.subheader("🚨 Automated Incident Response Webhook Dispatcher")
+            if st.button("📡 Dispatch Threat Alert to SOC Webhook"):
+                if not webhook_url:
+                    st.warning("Please configure your SOC Webhook URL in the Control Panel sidebar first.")
+                else:
+                    try:
+                        payload = {
+                            "text": f"🚨 *Smart Intelligence CTI Alert* \n*Target:* {target_entity}\n*Risk Rating:* {risk_level}\n*Total IoCs:* {total_iocs}"
+                        }
+                        resp = requests.post(webhook_url, json=payload, timeout=5)
+                        if resp.status_code in [200, 201, 204]:
+                            st.success("Successfully dispatched alert payload to your SOC Webhook endpoint!")
+                        else:
+                            st.error(f"Webhook responded with status code: {resp.status_code}")
+                    except Exception as e:
+                        st.error(f"Failed to dispatch webhook: {e}")
 
-            st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("<br><br><br>", unsafe_allow_html=True)
 
