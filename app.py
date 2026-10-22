@@ -198,6 +198,26 @@ st.markdown(f"""
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }}
+    
+    /* MULTISELECT & DROPDOWN TEXT CONTRAST FIX */
+    [data-baseweb="select"] span, [data-baseweb="tag"], span[data-baseweb="tag"] {{
+        background-color: #0f1d3a !important;
+        color: #38bdf8 !important;
+        border: 1px solid {border_color} !important;
+        font-weight: 700 !important;
+    }}
+    [data-baseweb="popover"], [data-baseweb="menu"], ul[role="listbox"], li[role="option"] {{
+        background-color: #060d1c !important;
+        color: #f8fafc !important;
+    }}
+    li[role="option"]:hover, li[aria-selected="true"] {{
+        background-color: #102347 !important;
+        color: #38bdf8 !important;
+    }}
+    [data-baseweb="select"] div {{
+        color: #f8fafc !important;
+    }}
+
     section[data-testid="stSidebar"] [data-baseweb="popover"], 
     section[data-testid="stSidebar"] [data-baseweb="menu"], 
     div[data-baseweb="select"] ul {{
@@ -337,13 +357,6 @@ st.markdown(f"""
     .playbook-comment {{
         color: #38bdf8 !important;
         font-weight: 700 !important;
-    }}
-    .feedback-card {{
-        background-color: rgba(6, 13, 28, 0.95) !important;
-        border: 1.5px solid #38bdf8 !important;
-        border-radius: 12px !important;
-        padding: 20px !important;
-        margin-top: 15px !important;
     }}
     .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
     .developer-footer {{
