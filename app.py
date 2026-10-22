@@ -43,7 +43,7 @@ LANGUAGES = {
         "tagline": "Enterprise Automated Threat Intelligence, Correlation, and Mitigation Platform",
         "l1": "Layer 1: Scope & Target Definition",
         "l2": "Layer 2: Multi-Source Data Ingestion Modules",
-        "l3": "Layer 3: Extraction & Normalization Engine",
+        "l3": "Layer 3: Extraction, Normalization & Threat Correlation Engine",
         "l4": "Layer 4: AI Threat Correlation & Actionable Mitigation Engine",
         "l5": "Layer 5: Output Deliverables & Operational Dashboard",
         "btn_process": "⚡ EXECUTE 5-LAYER INTELLIGENCE PIPELINE",
@@ -54,23 +54,6 @@ LANGUAGES = {
         "risk": "Threat Risk Rating",
         "iocs_found": "Total IoCs Extracted",
         "ttps_mapped": "TTPs Mapped"
-    },
-    "Français (French)": {
-        "welcome": "Smart Intelligence CTI",
-        "tagline": "Plateforme automatisée de renseignement, corrélation et atténuation des cybermenaces",
-        "l1": "Couche 1: Définition du Périmètre et de la Cible",
-        "l2": "Couche 2: Modules d'Ingestion de Données Multi-Sources",
-        "l3": "Couche 3: Moteur d'Extraction et de Normalisation",
-        "l4": "Couche 4: Moteur de Corrélation et d'Atténuation IA",
-        "l5": "Couche 5: Livrables et Tableau de Bord Opérationnel",
-        "btn_process": "⚡ EXÉCUTER LE PIPELINE D'INTELLIGENCE À 5 COUCHES",
-        "target": "Entité Cible / Secteur",
-        "timeframe": "Période d'Intelligence",
-        "goal": "Objectif d'Intelligence",
-        "confidence": "Confiance dans l'Intelligence",
-        "risk": "Évaluation du Risque de Menace",
-        "iocs_found": "Total d'IoCs Extraits",
-        "ttps_mapped": "TTPs Cartographiés"
     }
 }
 
@@ -470,7 +453,7 @@ def answer_copilot_reasoning(user_prompt):
             "1. **Layer 1:** Specify your target scope.\n"
             "2. **Layer 2:** Ingest logs or threat reports.\n"
             "3. **Pipeline Execution:** Click **Execute 5-Layer Intelligence Pipeline** to watch the live engine run.\n"
-            "4. **Layer 5:** Access executive briefings, IoC tables, and export bundles."
+            "4. **Layer 3 & 5:** Examine normalized correlation graphs and download intelligence deliverables."
         )
     elif any(k in prompt_lower for k in ["hello", "hi", "hey"]):
         return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis today?"
@@ -478,7 +461,6 @@ def answer_copilot_reasoning(user_prompt):
         return f"Regarding your query: *'{user_prompt}'*\n\nI am analyzing your telemetry and security workflow. Let me know if you need specific technical guidance!"
 
 def run_live_ai_synthesis(target, raw_text, iocs, ttps, api_key):
-    # Hybrid engine local fallback baseline
     text_lower = raw_text.lower()
     risk_score = 15
     if len(iocs.get("IPv4", [])) > 0: risk_score += 25
@@ -486,12 +468,10 @@ def run_live_ai_synthesis(target, raw_text, iocs, ttps, api_key):
     if any(k in text_lower for k in ["powershell", "cmd.exe", "mimikatz", "ransom", "lsass"]): risk_score += 30
     risk_score = min(risk_score, 100)
 
-    # If live API key is provided, attempt real online AI generation
     if api_key:
         try:
             headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
             prompt = f"Analyze this cyber threat data for target '{target}': {raw_text[:1000]}. Provide a concise professional SOC threat risk assessment and narrative."
-            # Standard OpenAI / compatible endpoint structure or simulation
             resp = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json={
                 "model": "gpt-3.5-turbo",
                 "messages": [{"role": "user", "content": prompt}],
@@ -504,7 +484,6 @@ def run_live_ai_synthesis(target, raw_text, iocs, ttps, api_key):
         except Exception:
             pass
 
-    # Default robust deterministic synthesis
     if risk_score >= 70:
         severity = "🔴 CRITICAL RISK (Immediate Active Threat Vector)"
     elif risk_score >= 40:
@@ -729,7 +708,7 @@ with col_hdr2:
 st.markdown("""
     <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
         <div class="live-hud-badge">
-            <span class="live-hud-dot"></span> SYSTEM READY : LIVE HYBRID PIPELINE ONLINE
+            <span class="live-hud-dot"></span> SYSTEM READY : HYBRID CORRELATION ENGINE ONLINE
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -834,7 +813,7 @@ if st.button(t["btn_process"], type="primary"):
         time.sleep(0.4)
         progress_bar.progress(40)
 
-        status_text.text("🔄 Layer 3: Running regex extraction & live API feed lookups...")
+        status_text.text("🔄 Layer 3: Running normalization, extraction & threat correlation engine...")
         ttps = map_ttp_heuristics(combined_raw_data)
         live_enrichment = enrich_ip_data(iocs.get("IPv4", []), vt_api_key) if enable_live_enrichment else []
         time.sleep(0.4)
@@ -875,6 +854,69 @@ if st.button(t["btn_process"], type="primary"):
         st.success("⚡ Live 5-Layer Intelligence Pipeline Execution Complete!")
 
         # ==========================================
+        # DEDICATED LAYER 3: THREAT CORRELATION & NORMALIZATION WORKSPACE
+        # ==========================================
+        st.markdown(f"<h2 style='color: #38bdf8; margin-top: 25px;'>📊 {t['l3']}</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px;'>Normalized threat analysis workspace breaking down indicators, categorical distribution, and asset correlation.</p>", unsafe_allow_html=True)
+
+        col_corr1, col_corr2 = st.columns(2)
+
+        with col_corr1:
+            st.subheader("📈 Indicator Category Volume Breakdown")
+            chart_data = pd.DataFrame({
+                'Indicator Category': list(iocs.keys()),
+                'Count': [len(v) for v in iocs.values()]
+            })
+            bar_chart = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
+                x=alt.X('Indicator Category:N', sort=None, title="IoC Type", axis=alt.Axis(labelAngle=0)),
+                y=alt.Y('Count:Q', title="Extracted Volume", axis=alt.Axis(tickMinStep=1)),
+                color=alt.Color('Indicator Category:N', scale=alt.Scale(scheme='tableau10'), legend=None),
+                tooltip=['Indicator Category', 'Count']
+            ).properties(height=280).configure_axis(
+                gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
+            ).configure_view(strokeWidth=0)
+            st.altair_chart(bar_chart, use_container_width=True)
+
+        with col_corr2:
+            st.subheader("🕸️ Asset vs. Threat Artifact Correlation Matrix")
+            graph_nodes = []
+            target_label = target_entity or "Target Enterprise Scope"
+            
+            for cat, items in iocs.items():
+                for item in items[:5]:
+                    graph_nodes.append({
+                        "Target_Entity": target_label,
+                        "Indicator": str(item),
+                        "Category": cat,
+                        "Risk_Weight": 90 if cat in ["IPv4", "SHA256"] else 50
+                    })
+            
+            if graph_nodes:
+                gdf = pd.DataFrame(graph_nodes)
+                base = alt.Chart(gdf).encode(
+                    x=alt.X('Target_Entity:N', title="Environment Scope"),
+                    y=alt.Y('Indicator:N', title="Correlated Threat Artifact"),
+                    color=alt.Color('Category:N', scale=alt.Scale(scheme='set1'), title="Indicator Class"),
+                    size=alt.Size('Risk_Weight:Q', scale=alt.Scale(range=[180, 450]), legend=None),
+                    tooltip=['Target_Entity', 'Indicator', 'Category', 'Risk_Weight']
+                )
+                points = base.mark_circle(opacity=0.9, stroke='#00ffcc', strokeWidth=1.8)
+                rules = base.mark_rule(strokeDash=[3, 3], opacity=0.5, color='#38bdf8')
+                corr_matrix_chart = (rules + points).properties(height=280).configure_axis(
+                    gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
+                ).configure_view(strokeWidth=0)
+                st.altair_chart(corr_matrix_chart, use_container_width=True)
+            else:
+                st.info("Insufficient indicators to render correlation matrix.")
+
+        if live_enrichment:
+            st.subheader("🌐 Layer 3 Live Feed & ASN Enrichment Intelligence")
+            for item in live_enrichment:
+                st.warning(f"📡 {item}")
+
+        st.divider()
+
+        # ==========================================
         # LAYER 5: PROFESSIONAL SOC OPERATIONAL DASHBOARD HERO
         # ==========================================
         st.markdown('<div class="soc-dashboard-hero">', unsafe_allow_html=True)
@@ -903,69 +945,13 @@ if st.button(t["btn_process"], type="primary"):
         st.write("")
 
         # ADVANCED SOC TABBED NAVIGATION
-        soc_tab1, soc_tab2, soc_tab3, soc_tab4 = st.tabs([
-            "📊 Telemetry & Correlation",
+        soc_tab1, soc_tab2, soc_tab3 = st.tabs([
             "🔍 IoC Inspector",
             "🛡️ Playbook Armory",
             "📦 Deliverables & Exports"
         ])
 
         with soc_tab1:
-            col_graph1, col_graph2 = st.columns(2)
-            with col_graph1:
-                st.subheader("📈 IoC Telemetry Breakdown")
-                chart_data = pd.DataFrame({
-                    'Indicator Category': list(iocs.keys()),
-                    'Count': [len(v) for v in iocs.values()]
-                })
-                bar_chart = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
-                    x=alt.X('Indicator Category:N', sort=None, title="IoC Type", axis=alt.Axis(labelAngle=0)),
-                    y=alt.Y('Count:Q', title="Detected Count", axis=alt.Axis(tickMinStep=1)),
-                    color=alt.Color('Indicator Category:N', scale=alt.Scale(scheme='tableau10'), legend=None),
-                    tooltip=['Indicator Category', 'Count']
-                ).properties(height=280).configure_axis(
-                    gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
-                ).configure_view(strokeWidth=0)
-                st.altair_chart(bar_chart, use_container_width=True)
-
-            with col_graph2:
-                st.subheader("🕸️ Layer 3 Interactive Threat Correlation Graph")
-                graph_nodes = []
-                target_label = target_entity or "Target Scope"
-                
-                for cat, items in iocs.items():
-                    for item in items[:4]:
-                        graph_nodes.append({
-                            "Target_Entity": target_label,
-                            "Indicator": str(item),
-                            "Category": cat,
-                            "Risk_Weight": 85 if cat in ["IPv4", "SHA256"] else 45
-                        })
-                
-                if graph_nodes:
-                    gdf = pd.DataFrame(graph_nodes)
-                    base = alt.Chart(gdf).encode(
-                        x=alt.X('Target_Entity:N', title="Target Environment Scope"),
-                        y=alt.Y('Indicator:N', title="Extracted Threat Artifacts"),
-                        color=alt.Color('Category:N', scale=alt.Scale(scheme='set1'), title="Indicator Class"),
-                        size=alt.Size('Risk_Weight:Q', scale=alt.Scale(range=[150, 400]), legend=None),
-                        tooltip=['Target_Entity', 'Indicator', 'Category', 'Risk_Weight']
-                    )
-                    points = base.mark_circle(opacity=0.85, stroke='#00ffcc', strokeWidth=1.5)
-                    rules = base.mark_rule(strokeDash=[4, 4], opacity=0.4, color='#38bdf8')
-                    correlation_chart = (rules + points).properties(height=280).configure_axis(
-                        gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
-                    ).configure_view(strokeWidth=0)
-                    st.altair_chart(correlation_chart, use_container_width=True)
-                else:
-                    st.info("Insufficient IoC nodes to render correlation graph.")
-
-            if live_enrichment:
-                st.subheader("🌐 Layer 3 Live Feed & API Enrichment Data")
-                for item in live_enrichment:
-                    st.warning(f"📡 {item}")
-
-        with soc_tab2:
             st.subheader("📊 Layer 3 Extracted Indicators of Compromise")
             filter_term = st.text_input("🔍 Filter/Search IoCs in real-time:", placeholder="Type IP, hash, or domain...")
             
@@ -1002,7 +988,7 @@ if st.button(t["btn_process"], type="primary"):
             else:
                 st.write("No explicit MITRE ATT&CK tactics matched standard heuristic keywords.")
 
-        with soc_tab3:
+        with soc_tab2:
             st.subheader("🛡️ Layer 4 Fight-Back & Containment Playbook Engine")
             st.caption("Copy and execute active containment scripts across host, network, identity, and SIEM controls.")
 
@@ -1022,7 +1008,7 @@ if st.button(t["btn_process"], type="primary"):
             with pb_tab4:
                 st.markdown(playbooks["siem"], unsafe_allow_html=True)
 
-        with soc_tab4:
+        with soc_tab3:
             st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
             dl_col1, dl_col2, dl_col3, dl_col4 = st.columns(4)
             
