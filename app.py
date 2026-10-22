@@ -6,11 +6,6 @@ from datetime import datetime
 import pandas as pd
 import altair as alt
 import requests
-from io import BytesIO
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
 
 # 1. SESSION STATE FOR THEME, SIDEBAR, & CHAT
 if "sidebar_state" not in st.session_state:
@@ -143,7 +138,7 @@ else:
     copilot_bubble_user = "#38bdf8"
     copilot_bubble_assistant = "#101d38"
 
-# 3. LIVE GLOWING ANIMATED BACKGROUND INJECTION
+# LIVE GLOWING ANIMATED BACKGROUND INJECTION
 st.components.v1.html(f"""
     <canvas id="cyberCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1;"></canvas>
     <script>
@@ -181,7 +176,7 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
-# CSS STYLING WITH DROPDOWN FIX
+# CSS STYLING
 st.markdown(f"""
     <style>
     .stApp {{
@@ -351,7 +346,6 @@ def defang(text):
     return text
 
 def is_valid_public_ip(ip_str):
-    """Filters out invalid octets (>255), loopbacks, APIPA, and private reserved ranges."""
     clean_ip = ip_str.replace('[.]', '.')
     parts = clean_ip.split('.')
     if len(parts) != 4:
@@ -360,26 +354,19 @@ def is_valid_public_ip(ip_str):
         octets = [int(p) for p in parts]
     except ValueError:
         return False
-    
-    # Check octet limits (0-255)
     for o in octets:
         if o < 0 or o > 255:
             return False
-            
-    # Filter out local loopbacks, broadcast, and APIPA
     if octets[0] == 0 or octets[0] == 127 or octets == [255, 255, 255, 255]:
         return False
     if octets[0] == 169 and octets[1] == 254:
         return False
-        
-    # Filter out private RFC 1918 ranges to keep threat rules focused on external C2
     if octets[0] == 10:
         return False
     if octets[0] == 192 and octets[1] == 168:
         return False
     if octets[0] == 172 and (16 <= octets[1] <= 31):
         return False
-        
     return True
 
 def enrich_ip_data(ip_list, vt_key):
@@ -414,7 +401,7 @@ def generate_yara_rule(target_entity, iocs):
     strings_section = []
     for i, h in enumerate(hashes):
         strings_section.append(f'        $hash_{i} = "{h}"')
-    for i, ip in enumerate(valid_ips[:5]):  # limit to top 5 valid IPs to keep rules clean
+    for i, ip in enumerate(valid_ips[:5]):
         strings_section.append(f'        $ip_{i} = "{ip}"')
         
     condition_logic = "any of ($hash*)" if hashes else ("any of them" if strings_section else '        $default_string = "powershell"')
@@ -431,82 +418,9 @@ def generate_yara_rule(target_entity, iocs):
         {condition_logic}
 }}"""
 
-# GENERATE PDF REPORT USING REPORTLAB
-def generate_pdf_report(target_entity, timeframe, intel_goal, risk_level, accuracy_score, iocs, ttps):
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
-    story = []
-    styles = getSampleStyleSheet()
-
-    title_style = ParagraphStyle(
-        'DocTitle', parent=styles['Heading1'], fontSize=20, textColor=colors.HexColor('#0284c7'), alignment=1, spaceAfter=15
-    )
-    subtitle_style = ParagraphStyle(
-        'DocSubtitle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#475569'), alignment=1, spaceAfter=20
-    )
-    heading2 = ParagraphStyle(
-        'SectionHeading', parent=styles['Heading2'], fontSize=14, textColor=colors.HexColor('#0f172a'), spaceBefore=12, spaceAfter=8
-    )
-    body_style = ParagraphStyle(
-        'BodyDark', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#334155'), spaceAfter=6
-    )
-
-    story.append(Paragraph("<b>SMART INTELLIGENCE | EXECUTIVE THREAT REPORT</b>", title_style))
-    story.append(Paragraph(f"Generated on {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')} | Author: blessingsmkandawire", subtitle_style))
-    story.append(Spacer(1, 10))
-
-    meta_data = [
-        [Paragraph("<b>Target Scope:</b>", body_style), Paragraph(target_entity or "Global Infrastructure", body_style)],
-        [Paragraph("<b>Intelligence Goal:</b>", body_style), Paragraph(intel_goal or "Threat Analysis", body_style)],
-        [Paragraph("<b>Timeframe:</b>", body_style), Paragraph(timeframe, body_style)],
-        [Paragraph("<b>Risk Rating:</b>", body_style), Paragraph(f"<font color='red'><b>{risk_level}</b></font>", body_style)],
-        [Paragraph("<b>Confidence Score:</b>", body_style), Paragraph(f"{accuracy_score}%", body_style)]
-    ]
-    t_meta = Table(meta_data, colWidths=[150, 380])
-    t_meta.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f8fafc')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#cbd5e1')),
-        ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#e2e8f0')),
-        ('PADDING', (0,0), (-1,-1), 6),
-    ]))
-    story.append(t_meta)
-    story.append(Spacer(1, 15))
-
-    story.append(Paragraph("<b>Indicators of Compromise (IoC) Summary</b>", heading2))
-    
-    ioc_data = [
-        ["Indicator Type", "Extracted Count", "Sample Indicators"],
-        ["IPv4 Addresses", str(len(iocs.get("IPv4", []))), ", ".join(iocs.get("IPv4", [])[:2]) or "None"],
-        ["Domains", str(len(iocs.get("Domains", []))), ", ".join(iocs.get("Domains", [])[:2]) or "None"],
-        ["Hashes (SHA256/MD5)", str(len(iocs.get("SHA256", [])) + len(iocs.get("MD5", []))), "Cryptographic Signatures Flagged"],
-        ["CVE Vulnerabilities", str(len(iocs.get("CVE", []))), ", ".join(iocs.get("CVE", [])) or "None"]
-    ]
-    
-    t_ioc = Table(ioc_data, colWidths=[140, 110, 280])
-    t_ioc.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0284c7')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#94a3b8')),
-        ('PADDING', (0,0), (-1,-1), 6),
-    ]))
-    story.append(t_ioc)
-    story.append(Spacer(1, 15))
-
-    story.append(Paragraph("<b>MITRE ATT&CK Tactics Mapped</b>", heading2))
-    if ttps:
-        for ttp in ttps:
-            story.append(Paragraph(f"• {ttp}", body_style))
-    else:
-        story.append(Paragraph("No direct high-risk MITRE TTPs flagged in current sample stream.", body_style))
-
-    doc.build(story)
-    buffer.seek(0)
-    return buffer
-
 # COPILOT REASONING ASSISTANT
 def answer_copilot_reasoning(user_prompt):
     prompt_lower = user_prompt.lower()
-    
     hazardous_keywords = [
         "how to make a bomb", "explosive", "build weapon", "hack into bank", 
         "ddos attack code", "steal money", "malware tutorial to attack"
@@ -532,7 +446,7 @@ def answer_copilot_reasoning(user_prompt):
             "1. **Layer 1:** Specify your target scope.\n"
             "2. **Layer 2:** Ingest logs, OSINT, or CSINT in the ingestion tabs.\n"
             "3. **Pipeline Execution:** Click **Execute 5-Layer Intelligence Pipeline**.\n"
-            "4. **Layer 5:** Access executive briefings, IoC tables, playbooks, and PDF exports!"
+            "4. **Layer 5:** Access executive briefings, IoC tables, playbooks, and exports!"
         )
     elif any(k in prompt_lower for k in ["hello", "hi", "hey", "who are you"]):
         return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis or security workflows today?"
@@ -542,10 +456,8 @@ def answer_copilot_reasoning(user_prompt):
             "I'm here to assist smoothly! Ingest your logs in Layer 2 or review extracted indicators in Layer 5. Let me know if you need specific technical guidance or security insights!"
         )
 
-# ADVANCED AI REASONING & THREAT NARRATIVE ENGINE
 def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
     text_lower = raw_text.lower()
-    
     has_powershell = any(k in text_lower for k in ["powershell", "cmd.exe", "wscript", "cscript", "bash", "sh"])
     has_credential_access = any(k in text_lower for k in ["mimikatz", "lsass", "dump", "kerberoasting", "brute force"])
     has_exfiltration = any(k in text_lower for k in ["exfil", "ftp", "sftp", "dns tunneling", "http post"])
@@ -587,7 +499,6 @@ def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
     narrative_lines.append(f"### 🤖 Layer 4: Real-Time AI Threat Intelligence & Reasoning Assessment")
     narrative_lines.append(f"**Target Scope Under Analysis:** `{target if target else 'Global Enterprise Infrastructure'}`")
     narrative_lines.append(f"**Calculated Threat Risk Index:** `{risk_score}/100` — **{assessed_severity}**")
-    
     narrative_lines.append("\n#### 🔬 Real-Time Behavioral Telemetry Breakdown:")
     if indicators_flagged:
         for ind in indicators_flagged:
@@ -597,7 +508,6 @@ def run_automated_ai_synthesis(target, raw_text, iocs, ttps):
 
     return "\n".join(narrative_lines), risk_score
 
-# REMEDIATION PLAYBOOK GENERATOR
 def generate_remediation_playbooks(iocs, ttps):
     ips = iocs.get("IPv4", [])
     domains = iocs.get("Domains", [])
@@ -644,7 +554,6 @@ def generate_remediation_playbooks(iocs, ttps):
         "siem": render_playbook_html(siem_lines)
     }
 
-# EXECUTIVE TEXT REPORT GENERATOR
 def generate_executive_text_report(target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs, ttps, live_enrichment):
     now_utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
     total_iocs = sum(len(v) for v in iocs.values())
@@ -668,7 +577,6 @@ def generate_executive_text_report(target_entity, timeframe, intel_goal, risk_le
     ]
     return "\n".join(report)
 
-# CORE PROCESSING FUNCTIONS
 def extract_iocs(raw_text):
     patterns = {
         "IPv4": r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',
@@ -925,10 +833,6 @@ if st.button(t["btn_process"], type="primary"):
             text_report = generate_executive_text_report(
                 target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs, ttps, live_enrichment
             )
-            
-            pdf_buffer = generate_pdf_report(
-                target_entity, timeframe, intel_goal, risk_level, accuracy_score, iocs, ttps
-            )
 
             st.success("5-Layer Intelligence Pipeline Execution Complete!")
 
@@ -1082,11 +986,11 @@ if st.button(t["btn_process"], type="primary"):
 
             with soc_tab4:
                 st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
-                dl_col1, dl_col2, dl_col3, dl_col4 = st.columns(4)
+                dl_col1, dl_col2, dl_col3 = st.columns(3)
                 
                 with dl_col1:
                     st.download_button(
-                        label="📄 Download Text Brief (.txt)",
+                        label="📄 Download Executive Briefing (.txt)",
                         data=text_report,
                         file_name="executive_threat_briefing.txt",
                         mime="text/plain"
@@ -1094,7 +998,7 @@ if st.button(t["btn_process"], type="primary"):
                     
                 with dl_col2:
                     st.download_button(
-                        label="📥 Download STIX 2.1 (.json)",
+                        label="📥 Download STIX 2.1 Bundle (.json)",
                         data=json.dumps(stix_bundle, indent=4),
                         file_name="smart_intelligence_stix21.json",
                         mime="application/json"
@@ -1102,18 +1006,10 @@ if st.button(t["btn_process"], type="primary"):
 
                 with dl_col3:
                     st.download_button(
-                        label="🛡️ Download YARA (.yara)",
+                        label="🛡️ Download YARA Rules (.yara)",
                         data=yara_code,
                         file_name="smart_intelligence_rule.yara",
                         mime="text/plain"
-                    )
-
-                with dl_col4:
-                    st.download_button(
-                        label="📕 Download Executive PDF (.pdf)",
-                        data=pdf_buffer,
-                        file_name="executive_threat_report.pdf",
-                        mime="application/pdf"
                     )
 
                 st.divider()
