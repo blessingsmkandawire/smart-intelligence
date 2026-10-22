@@ -180,6 +180,21 @@ st.markdown(f"""
         padding-top: 10px;
         overflow: visible !important;
     }}
+    /* EXPANDER FIX: Dark background and white text for sidebar settings */
+    section[data-testid="stSidebar"] .stExpander {{
+        background-color: #060d1c !important;
+        border: 1.5px solid {border_color} !important;
+        border-radius: 10px !important;
+    }}
+    section[data-testid="stSidebar"] .stExpander details summary {{
+        background-color: #08142c !important;
+        color: #f8fafc !important;
+        border-radius: 8px !important;
+    }}
+    section[data-testid="stSidebar"] .stExpander details summary p {{
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+    }}
     section[data-testid="stSidebar"] [data-baseweb="popover"], 
     section[data-testid="stSidebar"] [data-baseweb="menu"], 
     div[data-baseweb="select"] ul {{
@@ -220,6 +235,19 @@ st.markdown(f"""
         border-radius: 14px;
         padding: 18px 22px;
         box-shadow: {glow_shadow} !important;
+    }}
+    .welcome-banner {{
+        background: linear-gradient(90deg, rgba(6, 182, 212, 0.15) 0%, rgba(56, 189, 248, 0.25) 50%, rgba(6, 182, 212, 0.15) 100%);
+        border: 2px solid {border_color};
+        border-radius: 14px;
+        padding: 14px 20px;
+        text-align: center;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #38bdf8 !important;
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+        letter-spacing: 0.05em;
+        margin-bottom: 20px;
     }}
     .soc-dashboard-hero {{
         background: linear-gradient(135deg, rgba(11, 19, 43, 0.95) 0%, rgba(4, 9, 22, 0.98) 100%) !important;
@@ -705,6 +733,9 @@ with col_hdr2:
             st.session_state.sidebar_state = "expanded"
             st.rerun()
 
+# WELCOME BANNER (REPLACES THE EMPTY GLOW CONTAINER)
+st.markdown('<div class="welcome-banner">🛡️ WELCOME TO THE SMART INTELLIGENCE THREAT DASHBOARD</div>', unsafe_allow_html=True)
+
 # LIVE STATUS HUD BADGE
 st.markdown("""
     <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
@@ -882,7 +913,6 @@ if st.button(t["btn_process"], type="primary"):
             st.subheader("🔗 Clean Asset vs Threat Correlation Summary")
             target_label = target_entity or "Target Enterprise Scope"
             
-            # Build a clean readable summary table instead of cramped graph lines
             summary_rows = []
             for cat, items in iocs.items():
                 for item in items[:6]:
