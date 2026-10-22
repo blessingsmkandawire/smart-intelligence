@@ -43,7 +43,7 @@ LANGUAGES = {
         "tagline": "Enterprise Automated Threat Intelligence, Correlation, and Mitigation Platform",
         "l1": "Layer 1: Scope & Target Definition",
         "l2": "Layer 2: Multi-Source Data Ingestion Modules",
-        "l3": "Layer 3: Extraction, Normalization & Threat Correlation Engine",
+        "l3": "Layer 3: Extraction & Normalization Engine",
         "l4": "Layer 4: AI Threat Correlation & Actionable Mitigation Engine",
         "l5": "Layer 5: Output Deliverables & Operational Dashboard",
         "btn_process": "⚡ EXECUTE 5-LAYER INTELLIGENCE PIPELINE",
@@ -452,8 +452,9 @@ def answer_copilot_reasoning(user_prompt):
             "Here is your step-by-step workflow for **Smart Intelligence**:\n\n"
             "1. **Layer 1:** Specify your target scope.\n"
             "2. **Layer 2:** Ingest logs or threat reports.\n"
-            "3. **Pipeline Execution:** Click **Execute 5-Layer Intelligence Pipeline** to watch the live engine run.\n"
-            "4. **Layer 3 & 5:** Examine normalized correlation graphs and download intelligence deliverables."
+            "3. **Layer 3:** Review extraction & normalization metrics.\n"
+            "4. **Layer 4:** Analyze AI threat correlation.\n"
+            "5. **Layer 5:** Access playbooks and download intelligence deliverables."
         )
     elif any(k in prompt_lower for k in ["hello", "hi", "hey"]):
         return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis today?"
@@ -492,7 +493,7 @@ def run_live_ai_synthesis(target, raw_text, iocs, ttps, api_key):
         severity = "🟢 BASELINE TELEMETRY (Low Operational Risk)"
 
     narrative = [
-        f"### 🤖 Layer 4: Hybrid Deterministic & Heuristic AI Synthesis",
+        f"### 🤖 Layer 4: AI Threat Correlation & Actionable Mitigation Engine",
         f"**Target Scope:** `{target if target else 'Global Enterprise Infrastructure'}`",
         f"**Calculated Threat Risk Index:** `{risk_score}/100` — **{severity}**",
         f"\n#### 🔬 Behavioral Telemetry & Correlation Results:",
@@ -708,7 +709,7 @@ with col_hdr2:
 st.markdown("""
     <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
         <div class="live-hud-badge">
-            <span class="live-hud-dot"></span> SYSTEM READY : HYBRID CORRELATION ENGINE ONLINE
+            <span class="live-hud-dot"></span> SYSTEM READY : 5-LAYER PIPELINE ONLINE
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -766,8 +767,8 @@ with tab5:
 
 st.divider()
 
-# LAYER 3 & LAYER 4 PIPELINE TRIGGER WITH STAGED LIVE PROGRESS BAR
-st.header("3. Core Pipeline Execution")
+# PIPELINE EXECUTION BUTTON
+st.header("Pipeline Execution")
 
 sources_used = []
 combined_raw_data = ""
@@ -808,25 +809,25 @@ if st.button(t["btn_process"], type="primary"):
         time.sleep(0.3)
         progress_bar.progress(20)
 
-        status_text.text("🔄 Layer 2: Ingesting multi-source telemetry & parsing artifacts...")
-        iocs = extract_iocs(combined_raw_data)
-        time.sleep(0.4)
+        status_text.text("🔄 Layer 2: Ingesting multi-source telemetry...")
+        time.sleep(0.3)
         progress_bar.progress(40)
 
-        status_text.text("🔄 Layer 3: Running normalization, extraction & threat correlation engine...")
-        ttps = map_ttp_heuristics(combined_raw_data)
+        status_text.text("🔄 Layer 3: Running extraction & normalization engine...")
+        iocs = extract_iocs(combined_raw_data)
         live_enrichment = enrich_ip_data(iocs.get("IPv4", []), vt_api_key) if enable_live_enrichment else []
-        time.sleep(0.4)
-        progress_bar.progress(65)
+        time.sleep(0.3)
+        progress_bar.progress(60)
 
         status_text.text("🔄 Layer 4: Executing AI threat correlation & risk scoring...")
+        ttps = map_ttp_heuristics(combined_raw_data)
         st.session_state.ai_analysis_result, computed_risk_score = run_live_ai_synthesis(
             target_entity, combined_raw_data, iocs, ttps, ai_api_key
         )
-        time.sleep(0.4)
-        progress_bar.progress(85)
+        time.sleep(0.3)
+        progress_bar.progress(80)
 
-        status_text.text("🔄 Layer 5: Compiling playbooks, YARA rules, and export deliverables...")
+        status_text.text("🔄 Layer 5: Compiling playbooks, YARA rules, and deliverables...")
         stix_bundle = generate_stix_bundle(target_entity, iocs)
         yara_code = generate_yara_rule(target_entity, iocs)
         playbooks = generate_remediation_playbooks(iocs, ttps)
@@ -846,7 +847,7 @@ if st.button(t["btn_process"], type="primary"):
         )
         instructions_text = generate_instructions_text_report(target_entity, risk_level, iocs, ttps)
 
-        time.sleep(0.3)
+        time.sleep(0.2)
         progress_bar.progress(100)
         status_text.empty()
         progress_bar.empty()
@@ -854,10 +855,10 @@ if st.button(t["btn_process"], type="primary"):
         st.success("⚡ Live 5-Layer Intelligence Pipeline Execution Complete!")
 
         # ==========================================
-        # DEDICATED LAYER 3: THREAT CORRELATION & NORMALIZATION WORKSPACE
+        # LAYER 3: EXTRACTION & NORMALIZATION WORKSPACE
         # ==========================================
         st.markdown(f"<h2 style='color: #38bdf8; margin-top: 25px;'>📊 {t['l3']}</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px;'>Normalized threat analysis workspace breaking down indicators, categorical distribution, and asset correlation.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px;'>Normalized extraction breakdown and clean asset-to-threat indicator correlation matrix.</p>", unsafe_allow_html=True)
 
         col_corr1, col_corr2 = st.columns(2)
 
@@ -872,42 +873,30 @@ if st.button(t["btn_process"], type="primary"):
                 y=alt.Y('Count:Q', title="Extracted Volume", axis=alt.Axis(tickMinStep=1)),
                 color=alt.Color('Indicator Category:N', scale=alt.Scale(scheme='tableau10'), legend=None),
                 tooltip=['Indicator Category', 'Count']
-            ).properties(height=280).configure_axis(
+            ).properties(height=260).configure_axis(
                 gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
             ).configure_view(strokeWidth=0)
             st.altair_chart(bar_chart, use_container_width=True)
 
         with col_corr2:
-            st.subheader("🕸️ Asset vs. Threat Artifact Correlation Matrix")
-            graph_nodes = []
+            st.subheader("🔗 Clean Asset vs Threat Correlation Summary")
             target_label = target_entity or "Target Enterprise Scope"
             
+            # Build a clean readable summary table instead of cramped graph lines
+            summary_rows = []
             for cat, items in iocs.items():
-                for item in items[:5]:
-                    graph_nodes.append({
-                        "Target_Entity": target_label,
-                        "Indicator": str(item),
-                        "Category": cat,
-                        "Risk_Weight": 90 if cat in ["IPv4", "SHA256"] else 50
+                for item in items[:6]:
+                    summary_rows.append({
+                        "Target Asset": target_label,
+                        "Indicator Class": cat,
+                        "Extracted Artifact": item
                     })
             
-            if graph_nodes:
-                gdf = pd.DataFrame(graph_nodes)
-                base = alt.Chart(gdf).encode(
-                    x=alt.X('Target_Entity:N', title="Environment Scope"),
-                    y=alt.Y('Indicator:N', title="Correlated Threat Artifact"),
-                    color=alt.Color('Category:N', scale=alt.Scale(scheme='set1'), title="Indicator Class"),
-                    size=alt.Size('Risk_Weight:Q', scale=alt.Scale(range=[180, 450]), legend=None),
-                    tooltip=['Target_Entity', 'Indicator', 'Category', 'Risk_Weight']
-                )
-                points = base.mark_circle(opacity=0.9, stroke='#00ffcc', strokeWidth=1.8)
-                rules = base.mark_rule(strokeDash=[3, 3], opacity=0.5, color='#38bdf8')
-                corr_matrix_chart = (rules + points).properties(height=280).configure_axis(
-                    gridColor='#1e293b', domainColor='#334155', labelColor='#cbd5e1', titleColor='#f8fafc'
-                ).configure_view(strokeWidth=0)
-                st.altair_chart(corr_matrix_chart, use_container_width=True)
+            if summary_rows:
+                sdf = pd.DataFrame(summary_rows)
+                st.dataframe(sdf, use_container_width=True, height=260)
             else:
-                st.info("Insufficient indicators to render correlation matrix.")
+                st.info("No indicators extracted for correlation table.")
 
         if live_enrichment:
             st.subheader("🌐 Layer 3 Live Feed & ASN Enrichment Intelligence")
