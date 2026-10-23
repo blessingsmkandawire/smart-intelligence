@@ -543,7 +543,6 @@ Total Indicators Found: {total_iocs}
 def answer_copilot_reasoning(user_prompt):
     return "Hello! I am your **Gemini CTI Copilot**. I am analyzing your telemetry and security workflow. Let me know if you need specific technical guidance!"
 
-# HIGHLY INTELLIGENT LAYER 4 AI THREAT CORRELATION & MITIGATION ENGINE
 def run_live_ai_synthesis(target, raw_text, iocs, ttps, api_key):
     text_lower = raw_text.lower()
     risk_score = 15
@@ -721,8 +720,70 @@ def generate_stix_bundle(target_entity, iocs):
             })
     return {"type": "bundle", "id": bundle_id, "objects": objects}
 
-# 4. HEADER BANNER & COPILOT POPOVER
-st.image("https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcROn-mrBQe5btdrktqpXydcOjv7g-kthMpnU2tXpevypi1IkEe_ZHPFLaRy5VxKY4WNtuds3KQnZXLLx8Y", use_container_width=True)
+# 4. LIVE ANIMATED CYBER SHIELD BANNER COMPONENT
+st.components.v1.html("""
+    <div style="position: relative; width: 100%; height: 210px; background: radial-gradient(circle at 50% 50%, #081b3e 0%, #020612 90%); border: 2px solid #38bdf8; border-radius: 18px; overflow: hidden; box-shadow: 0 0 35px rgba(56, 189, 248, 0.45), inset 0 0 20px rgba(56, 189, 248, 0.25);">
+        
+        <!-- Background Mesh Grid -->
+        <div style="position: absolute; top:0; left:0; width:100%; height:100%; background-image: linear-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, 0.08) 1px, transparent 1px); background-size: 20px 20px; z-index:1;"></div>
+
+        <!-- Left Glowing HUD Dial -->
+        <div style="position: absolute; left: 30px; top: 50%; transform: translateY(-50%); width: 120px; height: 120px; border: 2px dashed #38bdf8; border-radius: 50%; animation: spinRight 12s linear infinite; opacity: 0.6; z-index:2;"></div>
+        <div style="position: absolute; left: 45px; top: 50%; transform: translateY(-50%); width: 90px; height: 90px; border: 2px solid #00ffcc; border-radius: 50%; border-top-color: transparent; animation: spinLeft 6s linear infinite; opacity: 0.8; z-index:2;"></div>
+
+        <!-- Right Glowing HUD Dial -->
+        <div style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%); width: 120px; height: 120px; border: 2px dashed #38bdf8; border-radius: 50%; animation: spinLeft 12s linear infinite; opacity: 0.6; z-index:2;"></div>
+        <div style="position: absolute; right: 45px; top: 50%; transform: translateY(-50%); width: 90px; height: 90px; border: 2px solid #00ffcc; border-radius: 50%; border-bottom-color: transparent; animation: spinRight 6s linear infinite; opacity: 0.8; z-index:2;"></div>
+
+        <!-- Center Glowing Cyber Shield -->
+        <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5;">
+            <svg width="130" height="150" viewBox="0 0 100 120" style="filter: drop-shadow(0 0 18px #38bdf8) drop-shadow(0 0 35px #00ffcc);">
+                <path d="M50 5 L90 20 V60 C90 90 50 115 50 115 C50 115 10 90 10 60 V20 Z" fill="rgba(6, 25, 56, 0.75)" stroke="#38bdf8" stroke-width="3"/>
+                <path d="M50 15 L80 27 V58 C80 82 50 102 50 102 C50 102 20 82 20 58 V27 Z" fill="none" stroke="#00ffcc" stroke-width="2" stroke-dasharray="4 2"/>
+                <circle cx="50" cy="55" r="12" fill="#38bdf8" style="animation: pulseGlow 2s infinite alternate;"/>
+                <path d="M50 40 V70 M35 55 H65" stroke="#020612" stroke-width="2.5"/>
+            </svg>
+            
+            <!-- Laser Radar Scanner Bar -->
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, transparent, #00ffcc, #38bdf8, transparent); box-shadow: 0 0 15px #00ffcc; animation: scanVertical 2.5s ease-in-out infinite;"></div>
+        </div>
+
+        <!-- Orbiting Particle Ring 1 -->
+        <div style="position: absolute; left: 50%; top: 50%; width: 220px; height: 80px; margin-left: -110px; margin-top: -40px; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 50%; transform: rotateX(70deg) rotateZ(30deg); animation: spinRight 8s linear infinite; z-index:3;">
+            <div style="width: 10px; height: 10px; background: #00ffcc; border-radius: 50%; box-shadow: 0 0 12px #00ffcc;"></div>
+        </div>
+
+        <!-- Orbiting Particle Ring 2 -->
+        <div style="position: absolute; left: 50%; top: 50%; width: 220px; height: 80px; margin-left: -110px; margin-top: -40px; border: 1px solid rgba(0, 255, 204, 0.4); border-radius: 50%; transform: rotateX(70deg) rotateZ(-30deg); animation: spinLeft 6s linear infinite; z-index:3;">
+            <div style="width: 10px; height: 10px; background: #38bdf8; border-radius: 50%; box-shadow: 0 0 12px #38bdf8;"></div>
+        </div>
+
+        <!-- Live Status Overlay Text -->
+        <div style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); color: #00ffcc; font-family: monospace; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.15em; text-shadow: 0 0 10px #00ffcc; z-index: 6;">
+            [ SYSTEM SHIELD ACTIVE — REAL-TIME THREAT MONITORING ]
+        </div>
+    </div>
+
+    <style>
+    @keyframes spinRight {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    @keyframes spinLeft {
+        0% { transform: rotate(360deg); }
+        100% { transform: rotate(0deg); }
+    }
+    @keyframes scanVertical {
+        0% { top: 5%; opacity: 0.2; }
+        50% { top: 85%; opacity: 1; }
+        100% { top: 5%; opacity: 0.2; }
+    }
+    @keyframes pulseGlow {
+        0% { transform: scale(0.85); filter: drop-shadow(0 0 5px #38bdf8); }
+        100% { transform: scale(1.15); filter: drop-shadow(0 0 20px #00ffcc); }
+    }
+    </style>
+""", height=220)
 
 col_hdr1, col_hdr2 = st.columns([3, 1])
 with col_hdr1:
