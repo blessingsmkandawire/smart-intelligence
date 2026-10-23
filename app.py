@@ -720,50 +720,80 @@ def generate_stix_bundle(target_entity, iocs):
             })
     return {"type": "bundle", "id": bundle_id, "objects": objects}
 
-# 4. LIVE ANIMATED CYBER SHIELD BANNER COMPONENT
+# 4. LIVE ANIMATED ENHANCED CYBER SHIELD BANNER COMPONENT
 st.components.v1.html("""
-    <div style="position: relative; width: 100%; height: 210px; background: radial-gradient(circle at 50% 50%, #081b3e 0%, #020612 90%); border: 2px solid #38bdf8; border-radius: 18px; overflow: hidden; box-shadow: 0 0 35px rgba(56, 189, 248, 0.45), inset 0 0 20px rgba(56, 189, 248, 0.25);">
+    <div style="position: relative; width: 100%; height: 280px; background: radial-gradient(circle at 50% 50%, #0a2552 0%, #020612 90%); border: 2px solid #38bdf8; border-radius: 20px; overflow: hidden; box-shadow: 0 0 45px rgba(56, 189, 248, 0.55), inset 0 0 30px rgba(56, 189, 248, 0.3);">
         
         <!-- Background Mesh Grid -->
-        <div style="position: absolute; top:0; left:0; width:100%; height:100%; background-image: linear-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, 0.08) 1px, transparent 1px); background-size: 20px 20px; z-index:1;"></div>
+        <div style="position: absolute; top:0; left:0; width:100%; height:100%; background-image: linear-gradient(rgba(56, 189, 248, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, 0.12) 1px, transparent 1px); background-size: 24px 24px; z-index:1;"></div>
 
-        <!-- Left Glowing HUD Dial -->
-        <div style="position: absolute; left: 30px; top: 50%; transform: translateY(-50%); width: 120px; height: 120px; border: 2px dashed #38bdf8; border-radius: 50%; animation: spinRight 12s linear infinite; opacity: 0.6; z-index:2;"></div>
-        <div style="position: absolute; left: 45px; top: 50%; transform: translateY(-50%); width: 90px; height: 90px; border: 2px solid #00ffcc; border-radius: 50%; border-top-color: transparent; animation: spinLeft 6s linear infinite; opacity: 0.8; z-index:2;"></div>
+        <!-- Four Glowing Corner HUD Brackets -->
+        <div style="position: absolute; top: 12px; left: 16px; color: #00ffcc; font-size: 1.8rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 12px #00ffcc; z-index: 6;">⌜</div>
+        <div style="position: absolute; top: 12px; right: 16px; color: #00ffcc; font-size: 1.8rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 12px #00ffcc; z-index: 6;">⌝</div>
+        <div style="position: absolute; bottom: 12px; left: 16px; color: #00ffcc; font-size: 1.8rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 12px #00ffcc; z-index: 6;">⌞</div>
+        <div style="position: absolute; bottom: 12px; right: 16px; color: #00ffcc; font-size: 1.8rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 12px #00ffcc; z-index: 6;">⌟</div>
 
-        <!-- Right Glowing HUD Dial -->
-        <div style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%); width: 120px; height: 120px; border: 2px dashed #38bdf8; border-radius: 50%; animation: spinLeft 12s linear infinite; opacity: 0.6; z-index:2;"></div>
-        <div style="position: absolute; right: 45px; top: 50%; transform: translateY(-50%); width: 90px; height: 90px; border: 2px solid #00ffcc; border-radius: 50%; border-bottom-color: transparent; animation: spinRight 6s linear infinite; opacity: 0.8; z-index:2;"></div>
+        <!-- Left Multi-Layer HUD Radar Dial -->
+        <div style="position: absolute; left: 40px; top: 50%; transform: translateY(-50%); width: 150px; height: 150px; border: 2px dashed #38bdf8; border-radius: 50%; animation: spinRight 14s linear infinite; opacity: 0.7; z-index:2;"></div>
+        <div style="position: absolute; left: 55px; top: 50%; transform: translateY(-50%); width: 120px; height: 120px; border: 2px solid #00ffcc; border-radius: 50%; border-top-color: transparent; border-bottom-color: transparent; animation: spinLeft 7s linear infinite; opacity: 0.85; z-index:2;"></div>
+        <div style="position: absolute; left: 95px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 1.5px solid #ff0055; border-radius: 50%; animation: pulseGlow 1.5s infinite alternate; z-index:2;"></div>
 
-        <!-- Center Glowing Cyber Shield -->
+        <!-- Right Multi-Layer HUD Radar Dial -->
+        <div style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); width: 150px; height: 150px; border: 2px dashed #38bdf8; border-radius: 50%; animation: spinLeft 14s linear infinite; opacity: 0.7; z-index:2;"></div>
+        <div style="position: absolute; right: 55px; top: 50%; transform: translateY(-50%); width: 120px; height: 120px; border: 2px solid #00ffcc; border-radius: 50%; border-left-color: transparent; border-right-color: transparent; animation: spinRight 7s linear infinite; opacity: 0.85; z-index:2;"></div>
+        <div style="position: absolute; right: 95px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 1.5px solid #ff0055; border-radius: 50%; animation: pulseGlow 1.5s infinite alternate; z-index:2;"></div>
+
+        <!-- Floating Live Data Stream Indicators (Left & Right) -->
+        <div style="position: absolute; left: 210px; top: 35px; color: #38bdf8; font-family: monospace; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.12em; text-shadow: 0 0 8px #38bdf8; z-index:4;">
+            ⚡ CTI-CORE: ONLINE <span style="color:#00ffcc;">>>></span>
+        </div>
+        <div style="position: absolute; right: 210px; top: 35px; color: #00ffcc; font-family: monospace; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.12em; text-shadow: 0 0 8px #00ffcc; z-index:4;">
+            <span style="color:#38bdf8;"><<<</span> 🔒 ENCRYPTED PIPELINE
+        </div>
+        <div style="position: absolute; left: 210px; bottom: 35px; color: #ff0055; font-family: monospace; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.12em; text-shadow: 0 0 8px #ff0055; z-index:4;">
+            📡 LIVE TELEMETRY FEED
+        </div>
+        <div style="position: absolute; right: 210px; bottom: 35px; color: #38bdf8; font-family: monospace; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.12em; text-shadow: 0 0 8px #38bdf8; z-index:4;">
+            🛡️ LAYER 1-5 ACTIVE
+        </div>
+
+        <!-- Enlarged Central Glowing Cyber Shield with Crosshairs -->
         <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5;">
-            <svg width="130" height="150" viewBox="0 0 100 120" style="filter: drop-shadow(0 0 18px #38bdf8) drop-shadow(0 0 35px #00ffcc);">
-                <path d="M50 5 L90 20 V60 C90 90 50 115 50 115 C50 115 10 90 10 60 V20 Z" fill="rgba(6, 25, 56, 0.75)" stroke="#38bdf8" stroke-width="3"/>
-                <path d="M50 15 L80 27 V58 C80 82 50 102 50 102 C50 102 20 82 20 58 V27 Z" fill="none" stroke="#00ffcc" stroke-width="2" stroke-dasharray="4 2"/>
-                <circle cx="50" cy="55" r="12" fill="#38bdf8" style="animation: pulseGlow 2s infinite alternate;"/>
-                <path d="M50 40 V70 M35 55 H65" stroke="#020612" stroke-width="2.5"/>
+            
+            <!-- Outer Target Reticle Ring -->
+            <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 190px; height: 190px; border: 1.5px solid rgba(0, 255, 204, 0.5); border-radius: 50%; border-style: dotted; animation: spinRight 20s linear infinite;"></div>
+            
+            <svg width="165" height="185" viewBox="0 0 100 120" style="filter: drop-shadow(0 0 25px #38bdf8) drop-shadow(0 0 45px #00ffcc) drop-shadow(0 0 60px #0284c7);">
+                <!-- Outer Shield Path -->
+                <path d="M50 5 L90 20 V60 C90 90 50 115 50 115 C50 115 10 90 10 60 V20 Z" fill="rgba(6, 25, 56, 0.85)" stroke="#38bdf8" stroke-width="3.5"/>
+                <!-- Inner Shield Path -->
+                <path d="M50 14 L82 26 V58 C82 82 50 102 50 102 C50 102 18 82 18 58 V26 Z" fill="none" stroke="#00ffcc" stroke-width="2" stroke-dasharray="4 2"/>
+                <!-- Core Glowing Symbol -->
+                <circle cx="50" cy="55" r="14" fill="#38bdf8" style="animation: pulseGlow 1.8s infinite alternate;"/>
+                <path d="M50 36 V74 M32 55 H68" stroke="#020612" stroke-width="3"/>
             </svg>
             
             <!-- Laser Radar Scanner Bar -->
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, transparent, #00ffcc, #38bdf8, transparent); box-shadow: 0 0 15px #00ffcc; animation: scanVertical 2.5s ease-in-out infinite;"></div>
+            <div style="position: absolute; top: -10px; left: -15px; width: 195px; height: 5px; background: linear-gradient(90deg, transparent, #00ffcc, #38bdf8, #ff0055, transparent); box-shadow: 0 0 20px #00ffcc; animation: scanVertical 2.2s ease-in-out infinite;"></div>
         </div>
 
         <!-- Orbiting Particle Ring 1 -->
-        <div style="position: absolute; left: 50%; top: 50%; width: 220px; height: 80px; margin-left: -110px; margin-top: -40px; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 50%; transform: rotateX(70deg) rotateZ(30deg); animation: spinRight 8s linear infinite; z-index:3;">
-            <div style="width: 10px; height: 10px; background: #00ffcc; border-radius: 50%; box-shadow: 0 0 12px #00ffcc;"></div>
+        <div style="position: absolute; left: 50%; top: 50%; width: 280px; height: 100px; margin-left: -140px; margin-top: -50px; border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 50%; transform: rotateX(72deg) rotateZ(35deg); animation: spinRight 7s linear infinite; z-index:3;">
+            <div style="width: 12px; height: 12px; background: #00ffcc; border-radius: 50%; box-shadow: 0 0 16px #00ffcc, 0 0 25px #00ffcc;"></div>
         </div>
 
         <!-- Orbiting Particle Ring 2 -->
-        <div style="position: absolute; left: 50%; top: 50%; width: 220px; height: 80px; margin-left: -110px; margin-top: -40px; border: 1px solid rgba(0, 255, 204, 0.4); border-radius: 50%; transform: rotateX(70deg) rotateZ(-30deg); animation: spinLeft 6s linear infinite; z-index:3;">
-            <div style="width: 10px; height: 10px; background: #38bdf8; border-radius: 50%; box-shadow: 0 0 12px #38bdf8;"></div>
+        <div style="position: absolute; left: 50%; top: 50%; width: 280px; height: 100px; margin-left: -140px; margin-top: -50px; border: 1px solid rgba(0, 255, 204, 0.5); border-radius: 50%; transform: rotateX(72deg) rotateZ(-35deg); animation: spinLeft 5s linear infinite; z-index:3;">
+            <div style="width: 12px; height: 12px; background: #ff0055; border-radius: 50%; box-shadow: 0 0 16px #ff0055, 0 0 25px #ff0055;"></div>
         </div>
 
-        <!-- Live Status Overlay Text -->
-        <div style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); color: #00ffcc; font-family: monospace; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.15em; text-shadow: 0 0 10px #00ffcc; z-index: 6;">
+        <!-- Central Live Status Overlay Badge -->
+        <div style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(2, 6, 18, 0.85); border: 1px solid #00ffcc; border-radius: 20px; padding: 4px 18px; color: #00ffcc; font-family: monospace; font-size: 0.88rem; font-weight: 800; letter-spacing: 0.15em; text-shadow: 0 0 12px #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); z-index: 6;">
             [ SYSTEM SHIELD ACTIVE — REAL-TIME THREAT MONITORING ]
         </div>
     </div>
 
+    <!-- Animation Keyframes -->
     <style>
     @keyframes spinRight {
         0% { transform: rotate(0deg); }
@@ -775,15 +805,15 @@ st.components.v1.html("""
     }
     @keyframes scanVertical {
         0% { top: 5%; opacity: 0.2; }
-        50% { top: 85%; opacity: 1; }
+        50% { top: 90%; opacity: 1; }
         100% { top: 5%; opacity: 0.2; }
     }
     @keyframes pulseGlow {
-        0% { transform: scale(0.85); filter: drop-shadow(0 0 5px #38bdf8); }
-        100% { transform: scale(1.15); filter: drop-shadow(0 0 20px #00ffcc); }
+        0% { transform: scale(0.85); filter: drop-shadow(0 0 8px #38bdf8); }
+        100% { transform: scale(1.2); filter: drop-shadow(0 0 25px #00ffcc); }
     }
     </style>
-""", height=220)
+""", height=290)
 
 col_hdr1, col_hdr2 = st.columns([3, 1])
 with col_hdr1:
