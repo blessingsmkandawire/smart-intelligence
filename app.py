@@ -5,6 +5,7 @@ import html
 from datetime import datetime
 import pandas as pd
 import altair as alt
+import plotly.express as px
 import requests
 import time
 import os
@@ -68,6 +69,9 @@ if "computed_risk_score" not in st.session_state:
 
 if "voice_mode" not in st.session_state:
     st.session_state.voice_mode = False
+
+if "sample_log_text" not in st.session_state:
+    st.session_state.sample_log_text = ""
 
 if "help_chat_history" not in st.session_state:
     st.session_state.help_chat_history = [
@@ -138,11 +142,11 @@ if st.sidebar.button("❌ Hide Control Panel"):
 if theme_choice == "Cyberpunk Neon Mode":
     bg_color_solid = "#030208"
     bg_gradient = "radial-gradient(circle at 50% 10%, #2a0845 0%, #030208 85%)"
-    card_bg = "rgba(18, 15, 36, 0.82)"
+    card_bg = "rgba(18, 15, 36, 0.85)"
     text_color = "#00ffcc"
     accent_color = "#ff0055"
     border_color = "#00ffcc"
-    glow_shadow = "0 0 20px rgba(0, 255, 204, 0.5), 0 0 40px rgba(255, 0, 85, 0.3)"
+    glow_shadow = "0 0 25px rgba(0, 255, 204, 0.45), 0 0 45px rgba(255, 0, 85, 0.25)"
     matrix_glow_color = "#00ffcc"
     copilot_bg = "#0d0a1a"
     copilot_text = "#00ffcc"
@@ -151,11 +155,11 @@ if theme_choice == "Cyberpunk Neon Mode":
 elif theme_choice == "Clean Light Mode":
     bg_color_solid = "#f1f5f9"
     bg_gradient = "linear-gradient(135deg, #e0f2fe 0%, #cbd5e1 100%)"
-    card_bg = "rgba(255, 255, 255, 0.92)"
+    card_bg = "rgba(255, 255, 255, 0.95)"
     text_color = "#0f172a"
     accent_color = "#0284c7"
     border_color = "#0284c7"
-    glow_shadow = "0 0 20px rgba(2, 132, 199, 0.3)"
+    glow_shadow = "0 0 20px rgba(2, 132, 199, 0.25)"
     matrix_glow_color = "#0284c7"
     copilot_bg = "#ffffff"
     copilot_text = "#0f172a"
@@ -164,11 +168,11 @@ elif theme_choice == "Clean Light Mode":
 else:
     bg_color_solid = "#040714"
     bg_gradient = "radial-gradient(circle at 50% 10%, #0d2147 0%, #040714 90%)"
-    card_bg = "rgba(10, 18, 36, 0.82)"
+    card_bg = "rgba(10, 18, 36, 0.88)"
     text_color = "#f8fafc"
     accent_color = "#38bdf8"
     border_color = "#38bdf8"
-    glow_shadow = "0 0 18px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.15)"
+    glow_shadow = "0 0 20px rgba(56, 189, 248, 0.35), inset 0 0 15px rgba(56, 189, 248, 0.1)"
     matrix_glow_color = "#38bdf8"
     copilot_bg = "#070d1d"
     copilot_text = "#f8fafc"
@@ -213,7 +217,7 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
-# CSS STYLING & MULTISELECT FIXES
+# PREMIUM REFINED CSS STYLING
 st.markdown(f"""
     <style>
     .stApp {{
@@ -227,20 +231,20 @@ st.markdown(f"""
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #060b18 0%, #030611 100%) !important;
         border-right: 2px solid {border_color} !important;
-        box-shadow: 8px 0px 35px rgba(56, 189, 248, 0.3) !important;
+        box-shadow: 10px 0px 40px rgba(56, 189, 248, 0.25) !important;
         z-index: 999999 !important;
-        padding-top: 10px;
+        padding-top: 15px;
         overflow: visible !important;
     }}
     section[data-testid="stSidebar"] .stExpander {{
         background-color: #060d1c !important;
         border: 1.5px solid {border_color} !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
     }}
     section[data-testid="stSidebar"] .stExpander details summary {{
         background-color: #08142c !important;
         color: #f8fafc !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
     }}
     section[data-testid="stSidebar"] .stExpander details summary p {{
         color: #38bdf8 !important;
@@ -290,53 +294,53 @@ st.markdown(f"""
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }}
     h1, h2, h3, h4 {{ color: {text_color} !important; font-weight: 700 !important; }}
-    h1 {{ color: {accent_color} !important; text-shadow: 0 0 20px {accent_color}, 0 0 35px rgba(56, 189, 248, 0.6); }}
+    h1 {{ color: {accent_color} !important; text-shadow: 0 0 22px {accent_color}, 0 0 40px rgba(56, 189, 248, 0.5); }}
     textarea, input, select, div[data-baseweb="select"] > div {{
         color: {text_color} !important;
-        background-color: rgba(6, 13, 28, 0.9) !important;
+        background-color: rgba(6, 13, 28, 0.92) !important;
         border: 1.5px solid {border_color} !important;
-        border-radius: 10px !important;
-        box-shadow: 0 0 12px rgba(56, 189, 248, 0.25), inset 0 0 8px rgba(56, 189, 248, 0.1) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 0 14px rgba(56, 189, 248, 0.2), inset 0 0 8px rgba(56, 189, 248, 0.1) !important;
     }}
     div[data-testid="stMetric"], .stExpander, div.stTabs {{
         background: {card_bg} !important;
-        backdrop-filter: blur(20px) saturate(200%);
+        backdrop-filter: blur(25px) saturate(200%);
         border: 1px solid {border_color} !important;
         border-top: 3px solid {accent_color} !important;
-        border-radius: 14px;
-        padding: 18px 22px;
+        border-radius: 16px;
+        padding: 20px 24px;
         box-shadow: {glow_shadow} !important;
     }}
     .welcome-banner {{
-        background: linear-gradient(90deg, rgba(6, 182, 212, 0.15) 0%, rgba(56, 189, 248, 0.25) 50%, rgba(6, 182, 212, 0.15) 100%);
+        background: linear-gradient(90deg, rgba(6, 182, 212, 0.18) 0%, rgba(56, 189, 248, 0.28) 50%, rgba(6, 182, 212, 0.18) 100%);
         border: 2px solid {border_color};
-        border-radius: 14px;
-        padding: 14px 20px;
+        border-radius: 16px;
+        padding: 16px 22px;
         text-align: center;
-        font-size: 1.15rem;
+        font-size: 1.2rem;
         font-weight: 800;
         color: #38bdf8 !important;
-        box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-        letter-spacing: 0.05em;
-        margin-bottom: 20px;
+        box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+        letter-spacing: 0.06em;
+        margin-bottom: 22px;
     }}
     .soc-dashboard-hero {{
-        background: linear-gradient(135deg, rgba(11, 19, 43, 0.95) 0%, rgba(4, 9, 22, 0.98) 100%) !important;
+        background: linear-gradient(135deg, rgba(11, 19, 43, 0.96) 0%, rgba(4, 9, 22, 0.99) 100%) !important;
         border: 2px solid {border_color} !important;
         border-top: 6px solid {accent_color} !important;
-        border-radius: 20px !important;
-        padding: 32px !important;
-        box-shadow: 0 0 40px rgba(56, 189, 248, 0.35), inset 0 0 20px rgba(56, 189, 248, 0.1) !important;
+        border-radius: 22px !important;
+        padding: 34px !important;
+        box-shadow: 0 0 45px rgba(56, 189, 248, 0.4), inset 0 0 20px rgba(56, 189, 248, 0.1) !important;
         margin-top: 15px !important;
         margin-bottom: 40px !important;
     }}
     .soc-metric-card {{
-        background: rgba(15, 23, 42, 0.85);
+        background: rgba(15, 23, 42, 0.9);
         border: 1px solid {border_color};
-        border-radius: 12px;
-        padding: 16px;
+        border-radius: 14px;
+        padding: 18px;
         text-align: center;
-        box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        box-shadow: 0 0 18px rgba(56, 189, 248, 0.25);
     }}
     .stButton>button {{
         width: 100%;
@@ -345,21 +349,25 @@ st.markdown(f"""
         background: linear-gradient(135deg, #0284c7 0%, #38bdf8 50%, #00ffcc 100%) !important;
         color: #030712 !important;
         border: none !important;
-        border-radius: 12px;
-        padding: 0.95rem 1.5rem;
-        box-shadow: 0 0 25px rgba(56, 189, 248, 0.6), 0 0 40px rgba(0, 255, 204, 0.4);
+        border-radius: 14px;
+        padding: 1rem 1.6rem;
+        box-shadow: 0 0 30px rgba(56, 189, 248, 0.65), 0 0 45px rgba(0, 255, 204, 0.4);
+        transition: transform 0.2s ease;
+    }}
+    .stButton>button:hover {{
+        transform: translateY(-2px);
     }}
     .live-hud-badge {{
         display: inline-flex;
         align-items: center;
-        background: rgba(16, 185, 129, 0.2);
+        background: rgba(16, 185, 129, 0.22);
         border: 1.5px solid #34d399;
         color: #34d399;
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-size: 0.88rem;
+        padding: 7px 18px;
+        border-radius: 22px;
+        font-size: 0.9rem;
         font-weight: 800;
-        box-shadow: 0 0 18px rgba(52, 211, 153, 0.4);
+        box-shadow: 0 0 20px rgba(52, 211, 153, 0.45);
     }}
     .live-hud-dot {{
         height: 10px; width: 10px;
@@ -376,45 +384,45 @@ st.markdown(f"""
         100% {{ transform: scale(0.9); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
     }}
     .ioc-box {{
-        background: rgba(3, 7, 18, 0.95);
+        background: rgba(3, 7, 18, 0.96);
         border: 1px solid {border_color};
         border-left: 4px solid #00ffcc;
-        border-radius: 8px;
-        padding: 10px 14px;
-        margin-bottom: 8px;
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-bottom: 10px;
         font-family: 'Courier New', monospace;
         color: #38bdf8;
     }}
     .playbook-container {{
         background-color: #020617 !important;
         border: 1.5px solid {border_color} !important;
-        border-radius: 12px !important;
-        padding: 18px 22px !important;
-        margin-top: 10px !important;
-        margin-bottom: 15px !important;
+        border-radius: 14px !important;
+        padding: 20px 24px !important;
+        margin-top: 12px !important;
+        margin-bottom: 18px !important;
     }}
     .playbook-line {{
         font-family: 'Fira Code', 'Courier New', Consolas, monospace !important;
-        font-size: 0.95rem !important;
-        line-height: 1.6 !important;
+        font-size: 0.96rem !important;
+        line-height: 1.65 !important;
         color: #00ffcc !important;
         white-space: pre-wrap !important;
         word-wrap: break-word !important;
-        margin-bottom: 4px !important;
+        margin-bottom: 6px !important;
     }}
     .playbook-comment {{
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }}
-    .stApp > div {{ padding-bottom: 90px; z-index: 10; position: relative; }}
+    .stApp > div {{ padding-bottom: 95px; z-index: 10; position: relative; }}
     .developer-footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
         background-color: #03050c; color: #38bdf8 !important;
         text-shadow: 0 0 10px #38bdf8;
-        text-align: center; padding: 10px; font-size: 0.88rem !important;
+        text-align: center; padding: 12px; font-size: 0.9rem !important;
         font-weight: 700;
         border-top: 1px solid #1e293b; z-index: 999;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.12em;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -509,7 +517,6 @@ def save_feedback_entry(name, role, rating, helpful_features, comments, webhook_
     }
     st.session_state.feedback_submissions.append(entry)
     
-    # Save locally to JSON file
     try:
         log_file = "system_feedback_log.json"
         existing = []
@@ -522,7 +529,6 @@ def save_feedback_entry(name, role, rating, helpful_features, comments, webhook_
     except Exception:
         pass
 
-    # Push instant Webhook Notification (Slack / Discord / Teams)
     if webhook_target_url:
         try:
             payload = {
@@ -598,14 +604,13 @@ def generate_instructions_text_report(target_entity, risk_level, iocs, ttps):
 
     return "\n".join(report)
 
-# COPILOT REASONING ASSISTANT
 def answer_copilot_reasoning(user_prompt):
     prompt_lower = user_prompt.lower()
     if any(k in prompt_lower for k in ["how", "use", "guide", "start", "begin", "steps", "workflow"]):
         return (
             "Here is your step-by-step workflow for **Smart Intelligence**:\n\n"
             "1. **Layer 1:** Specify your target scope.\n"
-            "2. **Layer 2:** Ingest logs or threat reports.\n"
+            "2. **Layer 2:** Ingest logs or threat reports (or use Quick-Load samples!)\n"
             "3. **Layer 3:** Review extraction & normalization metrics.\n"
             "4. **Layer 4:** Analyze AI threat correlation.\n"
             "5. **Layer 5:** Access playbooks, attack maps, historical archives, and submit feedback!"
@@ -805,9 +810,9 @@ with col_hdr2:
     st.write("")
     with st.popover("🤖 CTI Copilot & Live AI", help="Click to open live CTI assistant"):
         st.markdown(f"""
-            <div style="background-color: {copilot_bg}; color: {copilot_text}; padding: 4px; border-radius: 8px;">
+            <div style="background-color: {copilot_bg}; color: {copilot_text}; padding: 6px; border-radius: 10px;">
                 <h4 style="color: {copilot_text} !important; margin-bottom: 2px;">💡 Gemini CTI Copilot</h4>
-                <p style="color: {copilot_text} !important; font-size: 0.82rem; opacity: 0.9;">Real-time interactive assistant & general guidance engine.</p>
+                <p style="color: {copilot_text} !important; font-size: 0.82rem; opacity: 0.9;">Real-time interactive assistant & guidance engine.</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -864,7 +869,7 @@ st.markdown('<div class="welcome-banner">🛡️ WELCOME TO THE SMART INTELLIGEN
 
 # LIVE STATUS HUD BADGE
 st.markdown("""
-    <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+    <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 12px;">
         <div class="live-hud-badge">
             <span class="live-hud-dot"></span> SYSTEM READY : 5-LAYER PIPELINE ONLINE
         </div>
@@ -886,8 +891,20 @@ with col_s3:
 
 st.divider()
 
-# LAYER 2: MULTI-SOURCE INGESTION
+# LAYER 2: MULTI-SOURCE INGESTION & LANDING PAGE QUICK-LOAD SAMPLES
 st.header(t["l2"])
+
+st.markdown("##### ⚡ Quick-Load Attack Telemetry (Sample Scenarios)")
+qcol1, qcol2, qcol3 = st.columns(3)
+if qcol1.button("🚨 Load Ransomware Sample"):
+    st.session_state.sample_log_text = "Detected ransomware payload execution via powershell.exe. IP: 185.220.101.5 connecting to malicious C2 domain c2-beacon-node.com. File Hash SHA256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855. CVE-2023-21554 exploited."
+    st.rerun()
+if qcol2.button("🌐 Load C2 Botnet Sample"):
+    st.session_state.sample_log_text = "Multiple brute-force attempts from 45.33.32.156 targeting SSH port 22. Associated with APT29 threat group infrastructure. Domain: malicious-update.net communicating over port 443."
+    st.rerun()
+if qcol3.button("🧹 Clear Sample Logs"):
+    st.session_state.sample_log_text = ""
+    st.rerun()
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "💻 (i) System & Network Logs",
@@ -899,7 +916,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 
 with tab1:
     st.subheader("System & Network Logs")
-    log_text = st.text_area("Paste Raw Logs:", height=120, placeholder="Paste syslog, firewall, or web server logs here...")
+    log_text = st.text_area("Paste Raw Logs:", value=st.session_state.sample_log_text, height=120, placeholder="Paste syslog, firewall, or web server logs here...")
     log_file = st.file_uploader("Upload Log File (.log, .json, .csv, .pcap)", type=["log", "json", "csv", "txt"])
 
 with tab2:
@@ -956,7 +973,7 @@ for uploaded_file in [log_file, csint_file, context_file]:
 
 if st.button(t["btn_process"], type="primary"):
     if not combined_raw_data.strip():
-        st.error("Please provide input in at least one ingestion tab before processing.")
+        st.error("Please provide input in at least one ingestion tab or load a sample scenario before processing.")
     else:
         # LIVE STAGED PROGRESS ANIMATION
         progress_bar = st.progress(0)
