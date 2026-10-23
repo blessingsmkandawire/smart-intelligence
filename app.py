@@ -5,7 +5,6 @@ import html
 from datetime import datetime
 import pandas as pd
 import altair as alt
-import plotly.express as px
 import requests
 import time
 import os
@@ -471,7 +470,7 @@ def enrich_ip_data(ip_list, vt_key, abuse_key):
                 org = res.get("org", "Unknown Org")
                 results.append(f"IP {ip}: {org} ({country}) - ISP: {res.get('isp')}")
                 if lat and lon:
-                    geo_data.append({"IP": ip, "Country": country, "Org": org, "lat": lat, "lon": lon})
+                    geo_data.append({"latitude": lat, "longitude": lon})
         except Exception:
             pass
 
@@ -1097,7 +1096,7 @@ if st.button(t["btn_process"], type="primary"):
         soc_tab1, soc_tab2, soc_tab3, soc_tab4, soc_tab5 = st.tabs([
             "🔍 IoC Inspector",
             "🛡️ Playbook Armory",
-            "🗺️ Attack World Map",
+            "🗺️ Attack Origin Map",
             "📦 Deliverables & Exports",
             "📜 Threat Search Archive"
         ])
@@ -1160,16 +1159,10 @@ if st.button(t["btn_process"], type="primary"):
                 st.markdown(playbooks["siem"], unsafe_allow_html=True)
 
         with soc_tab3:
-            st.subheader("🗺️ Attacker Origin Geographical Map")
+            st.subheader("🗺️ Attacker Origin Map")
             if geo_locations:
-                geo_df = pd.DataFrame(geo_locations)
-                fig = px.scatter_geo(
-                    geo_df, lat='lat', lon='lon', hover_name='IP', hover_data=['Country', 'Org'],
-                    title="Extracted Attacker IP Geographical Heat Map", projection="natural earth"
-                )
-                fig.update_traces(marker=dict(size=14, color='red', symbol='circle'))
-                fig.update_layout(template="plotly_dark", height=420)
-                st.plotly_chart(fig, use_container_width=True)
+                map_df = pd.DataFrame(geo_locations)
+                st.map(map_df, zoom=1)
             else:
                 st.info("No public IP addresses with geographical coordinates were extracted in this scan.")
 
@@ -1274,7 +1267,7 @@ if st.button(t["btn_process"], type="primary"):
                         "AI Threat Synthesis & Risk Scoring (Layer 4)",
                         "Containment Playbooks (PowerShell / Firewall / KQL)",
                         "YARA Rule & STIX 2.1 File Exports",
-                        "Attacker Geographical World Map",
+                        "Attacker Geographical Map",
                         "Executive Briefing Audio"
                     ],
                     default=["Automated Regex & IoC Extraction (Layer 3)", "Containment Playbooks (PowerShell / Firewall / KQL)"]
