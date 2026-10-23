@@ -32,19 +32,16 @@ def init_db():
         conn.commit()
         conn.close()
     except Exception:
-        pass  # Gracefully bypass if filesystem restrictions apply on cloud
+        pass
 
 init_db()
 
-# Safe Secret / Config Loader for Cloud Environments
 def get_cloud_secret(key_name, default_val=""):
-    # 1. Check Streamlit Secrets first (ideal for online deployment)
     try:
         if key_name in st.secrets:
             return st.secrets[key_name]
     except Exception:
         pass
-    # 2. Fall back to Session State
     return st.session_state.get(key_name, default_val)
 
 def save_scan_to_db(target, timeframe, risk_score, risk_level, ioc_count, ttp_count, summary):
@@ -78,6 +75,9 @@ if "ai_analysis_result" not in st.session_state:
 
 if "voice_mode" not in st.session_state:
     st.session_state.voice_mode = False
+
+if "is_developer" not in st.session_state:
+    st.session_state.is_developer = False
 
 if "sample_log_text" not in st.session_state:
     st.session_state.sample_log_text = ""
@@ -400,18 +400,40 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# CLOUD-SAFE SECRETS & SETTINGS PANEL
-with st.sidebar.expander("🛠️ Advanced Platform & API Settings", expanded=True):
-    st.markdown("<p style='font-size: 0.82rem; color: #94a3b8; margin-bottom: 10px;'>Loaded from cloud secrets or session state.</p>", unsafe_allow_html=True)
-    
-    enable_live_enrichment = st.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
-    defang_iocs = st.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)", value=False)
-    st.session_state.voice_mode = st.checkbox("Enable Live Voice Speech-Output", value=st.session_state.voice_mode)
-    
-    ai_api_key = st.text_input("Live AI / Gemini API Key", value=get_cloud_secret("ai_api_key", ""), type="password", placeholder="Enter AI API key...")
-    vt_api_key = st.text_input("VirusTotal API Key", value=get_cloud_secret("vt_api_key", ""), type="password", placeholder="Enter VT v3 key...")
-    abuseipdb_api_key = st.text_input("AbuseIPDB API Key", value=get_cloud_secret("abuseipdb_api_key", ""), type="password", placeholder="Enter AbuseIPDB key...")
-    webhook_url = st.text_input("SOC Webhook URL", value=get_cloud_secret("webhook_url", ""), placeholder="https://webhook.site/...")
+# -------------------------------------------------------------
+# DEVELOPER AUTHENTICATION GATE FOR API SETTINGS
+# -------------------------------------------------------------
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🔐 Developer Portal")
+dev_pass_input = st.sidebar.text_input("Passcode to Unlock API Settings", type="password", placeholder="Enter dev passcode...")
+
+correct_passcode = get_cloud_secret("admin_password", "blessings2026")
+if dev_pass_input == correct_passcode:
+    st.session_state.is_developer = True
+
+# Default fallback values so pipeline execution never crashes for regular users
+enable_live_enrichment = True
+defang_iocs = False
+ai_api_key = get_cloud_secret("ai_api_key", "")
+vt_api_key = get_cloud_secret("vt_api_key", "")
+abuseipdb_api_key = get_cloud_secret("abuseipdb_api_key", "")
+webhook_url = get_cloud_secret("webhook_url", "")
+
+if st.session_state.is_developer:
+    st.sidebar.success("🔓 Developer Mode Active")
+    with st.sidebar.expander("🛠️ Advanced Platform & API Settings", expanded=True):
+        st.markdown("<p style='font-size: 0.82rem; color: #94a3b8; margin-bottom: 10px;'>Visible to developer only.</p>", unsafe_allow_html=True)
+        
+        enable_live_enrichment = st.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
+        defang_iocs = st.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)", value=False)
+        st.session_state.voice_mode = st.checkbox("Enable Live Voice Speech-Output", value=st.session_state.voice_mode)
+        
+        ai_api_key = st.text_input("Live AI / Gemini API Key", value=ai_api_key, type="password", placeholder="Enter AI API key...")
+        vt_api_key = st.text_input("VirusTotal API Key", value=vt_api_key, type="password", placeholder="Enter VT v3 key...")
+        abuseipdb_api_key = st.text_input("AbuseIPDB API Key", value=abuseipdb_api_key, type="password", placeholder="Enter AbuseIPDB key...")
+        webhook_url = st.text_input("SOC Webhook URL", value=webhook_url, placeholder="https://webhook.site/...")
+else:
+    st.sidebar.info("🔒 API configuration controls are restricted to the developer.")
 
 st.sidebar.markdown("<div style='margin: 15px 0;'></div>", unsafe_allow_html=True)
 if st.sidebar.button("❌ Hide Control Panel"):
