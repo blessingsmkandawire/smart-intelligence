@@ -104,7 +104,7 @@ t = {
     "goal": "Intelligence Goal"
 }
 
-st.sidebar.markdown("<h2 style='text-align: center; border-bottom: 2px solid; padding-bottom: 8px;'>⚙️ CONTROL PANEL</h2>", unsafe_allow_html=True)
+st.sidebar.markdown("<h2 style='text-align: center; border-bottom: 2px solid #38bdf8; padding-bottom: 8px;'>⚙️ CONTROL PANEL</h2>", unsafe_allow_html=True)
 
 theme_choice = st.sidebar.selectbox(
     "🎨 UI Visual Mode", 
@@ -165,14 +165,14 @@ else:  # Dark SOC Theme
     sidebar_text = "#38bdf8"
     accent_color = "#38bdf8"
     border_color = "#38bdf8"
-    glow_shadow = "0 0 20px rgba(56, 189, 248, 0.35), inset 0 0 15px rgba(56, 189, 248, 0.1)"
+    glow_shadow = "0 0 22px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.15)"
     matrix_glow_color = "#38bdf8"
     copilot_bg = "#070d1d"
     copilot_text = "#f8fafc"
     copilot_bubble_user = "#38bdf8"
     copilot_bubble_assistant = "#101d38"
 
-# INJECT ANIMATED BACKGROUND & THEME-AWARE CSS STYLING
+# INJECT ANIMATED MATRIX BACKGROUND
 st.components.v1.html(f"""
     <canvas id="cyberCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1;"></canvas>
     <script>
@@ -195,7 +195,7 @@ st.components.v1.html(f"""
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '{matrix_glow_color}';
         ctx.font = fontSize + 'px monospace';
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 10;
         ctx.shadowColor = '{matrix_glow_color}';
         for (let i = 0; i < drops.length; i++) {{
             const text = charArr[Math.floor(Math.random() * charArr.length)];
@@ -210,6 +210,7 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
+# HIGH-VISIBILITY DROPDOWN & GLOWING CSS
 st.markdown(f"""
     <style>
     .stApp {{
@@ -223,62 +224,61 @@ st.markdown(f"""
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
         border-right: 2px solid {border_color} !important;
-        box-shadow: 10px 0px 40px rgba(56, 189, 248, 0.2) !important;
+        box-shadow: 10px 0px 40px rgba(56, 189, 248, 0.3) !important;
         z-index: 999999 !important;
         padding-top: 15px;
     }}
-    section[data-testid="stSidebar"] h2 {{
-        color: {sidebar_text} !important;
-        border-bottom: 2px solid {sidebar_text} !important;
-    }}
-    section[data-testid="stSidebar"] .stExpander {{
-        background-color: {'#f8fafc' if theme_choice == 'Clean Light Mode' else '#060d1c'} !important;
-        border: 1.5px solid {border_color} !important;
-        border-radius: 12px !important;
-    }}
-    section[data-testid="stSidebar"] .stExpander details summary {{
-        background-color: {'#e2e8f0' if theme_choice == 'Clean Light Mode' else '#08142c'} !important;
-        border-radius: 10px !important;
-    }}
-    section[data-testid="stSidebar"] .stExpander details summary p {{
-        color: {sidebar_text} !important;
-        font-weight: 700 !important;
+    
+    /* CRITICAL DROPDOWN CONTRAST FIX */
+    ul[role="listbox"], 
+    div[role="listbox"], 
+    div[data-baseweb="popover"], 
+    ul[data-testid="stSelectboxVirtualDropdown"],
+    [data-baseweb="menu"] {{
+        background-color: #0d1b3e !important;
+        border: 2px solid {border_color} !important;
+        box-shadow: 0 0 25px rgba(56, 189, 248, 0.5) !important;
+        z-index: 99999999 !important;
     }}
     
-    /* MULTISELECT & CONTROL PANEL VISIBILITY */
-    section[data-testid="stSidebar"] label, 
-    section[data-testid="stSidebar"] p, 
-    section[data-testid="stSidebar"] span {{
-        color: {sidebar_text} !important;
-        font-weight: 700 !important;
+    li[role="option"], 
+    div[role="option"],
+    ul[role="listbox"] li,
+    ul[data-testid="stSelectboxVirtualDropdown"] li {{
+        background-color: #0d1b3e !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        font-size: 1rem !important;
+        padding: 10px 14px !important;
     }}
-    [data-baseweb="select"] span, [data-baseweb="tag"], span[data-baseweb="tag"] {{
-        background-color: {'#e2e8f0' if theme_choice == 'Clean Light Mode' else '#0f1d3a'} !important;
-        color: {text_color} !important;
-        border: 1px solid {border_color} !important;
-        font-weight: 700 !important;
-    }}
-    [data-baseweb="popover"], [data-baseweb="menu"], ul[role="listbox"], li[role="option"] {{
-        background-color: {'#ffffff' if theme_choice == 'Clean Light Mode' else '#060d1c'} !important;
-        color: {text_color} !important;
-    }}
-    li[role="option"]:hover, li[aria-selected="true"] {{
-        background-color: {'#cbd5e1' if theme_choice == 'Clean Light Mode' else '#102347'} !important;
-        color: {accent_color} !important;
+    
+    li[role="option"]:hover, 
+    li[aria-selected="true"],
+    ul[data-testid="stSelectboxVirtualDropdown"] li:hover {{
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+        text-shadow: 0 0 8px #ffffff !important;
     }}
 
+    li[role="option"] span, div[role="option"] span {{
+        color: #ffffff !important;
+        font-weight: 800 !important;
+    }}
+
+    /* GLOBAL TEXT & INPUT STYLES */
     html, body, p, span, div, label, .stMarkdown, .stText {{
         color: {text_color} !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }}
     h1, h2, h3, h4 {{ color: {text_color} !important; font-weight: 700 !important; }}
-    h1 {{ color: {accent_color} !important; text-shadow: 0 0 22px {accent_color}; }}
+    h1 {{ color: {accent_color} !important; text-shadow: 0 0 22px {accent_color}, 0 0 35px rgba(56, 189, 248, 0.6); }}
     
     textarea, input, select, div[data-baseweb="select"] > div {{
         color: {text_color} !important;
         background-color: {'#ffffff' if theme_choice == 'Clean Light Mode' else 'rgba(6, 13, 28, 0.92)'} !important;
         border: 1.5px solid {border_color} !important;
         border-radius: 12px !important;
+        box-shadow: 0 0 14px rgba(56, 189, 248, 0.25) !important;
     }}
     div[data-testid="stMetric"], .stExpander, div.stTabs {{
         background: {card_bg} !important;
@@ -290,15 +290,16 @@ st.markdown(f"""
         box-shadow: {glow_shadow} !important;
     }}
     .welcome-banner {{
-        background: linear-gradient(90deg, rgba(6, 182, 212, 0.18) 0%, rgba(56, 189, 248, 0.28) 50%, rgba(6, 182, 212, 0.18) 100%);
+        background: linear-gradient(90deg, rgba(6, 182, 212, 0.2) 0%, rgba(56, 189, 248, 0.35) 50%, rgba(6, 182, 212, 0.2) 100%);
         border: 2px solid {border_color};
         border-radius: 16px;
         padding: 16px 22px;
         text-align: center;
-        font-size: 1.2rem;
+        font-size: 1.25rem;
         font-weight: 800;
         color: {accent_color} !important;
-        box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+        box-shadow: 0 0 30px rgba(56, 189, 248, 0.45);
+        letter-spacing: 0.05em;
         margin-bottom: 22px;
     }}
     .soc-dashboard-hero {{
@@ -307,6 +308,7 @@ st.markdown(f"""
         border-top: 6px solid {accent_color} !important;
         border-radius: 22px !important;
         padding: 34px !important;
+        box-shadow: 0 0 45px rgba(56, 189, 248, 0.35) !important;
         margin-top: 15px !important;
         margin-bottom: 40px !important;
     }}
@@ -316,6 +318,7 @@ st.markdown(f"""
         border-radius: 14px;
         padding: 18px;
         text-align: center;
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
     }}
     .stButton>button {{
         width: 100%;
@@ -326,6 +329,33 @@ st.markdown(f"""
         border: none !important;
         border-radius: 14px;
         padding: 1rem 1.6rem;
+        box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+    }}
+    .live-hud-badge {{
+        display: inline-flex;
+        align-items: center;
+        background: rgba(16, 185, 129, 0.25);
+        border: 1.5px solid #34d399;
+        color: #34d399;
+        padding: 8px 20px;
+        border-radius: 24px;
+        font-size: 0.92rem;
+        font-weight: 800;
+        box-shadow: 0 0 22px rgba(52, 211, 153, 0.5);
+    }}
+    .live-hud-dot {{
+        height: 12px; width: 12px;
+        background-color: #34d399;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 12px;
+        box-shadow: 0 0 15px #34d399;
+        animation: pulse-animation 1.6s infinite;
+    }}
+    @keyframes pulse-animation {{
+        0% {{ transform: scale(0.9); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.8); }}
+        70% {{ transform: scale(1.2); box-shadow: 0 0 0 14px rgba(52, 211, 153, 0); }}
+        100% {{ transform: scale(0.9); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }}
     }}
     .ioc-box {{
         background: {'#ffffff' if theme_choice == 'Clean Light Mode' else 'rgba(3, 7, 18, 0.96)'};
