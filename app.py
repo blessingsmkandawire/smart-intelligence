@@ -5,11 +5,59 @@ import html
 from datetime import datetime
 import pandas as pd
 import altair as alt
+import plotly.express as px
 import requests
 import time
 import os
+import sqlite3
 
-# 1. SESSION STATE FOR THEME, SIDEBAR, CHAT, & FEEDBACK LOGS
+# 1. DATABASE SETUP FOR THREAT HISTORY ARCHIVE
+DB_FILE = "threat_intelligence.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS threat_scans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            target TEXT,
+            timeframe TEXT,
+            risk_score INTEGER,
+            risk_level TEXT,
+            ioc_count INTEGER,
+            ttp_count INTEGER,
+            summary TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()
+
+def save_scan_to_db(target, timeframe, risk_score, risk_level, ioc_count, ttp_count, summary):
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+        c.execute('''
+            INSERT INTO threat_scans (timestamp, target, timeframe, risk_score, risk_level, ioc_count, ttp_count, summary)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC'), target or "Global", timeframe, risk_score, risk_level, ioc_count, ttp_count, summary[:300]))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        st.warning(f"Database write warning: {e}")
+
+def get_scan_history():
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        df = pd.read_sql_query("SELECT * FROM threat_scans ORDER BY id DESC LIMIT 50", conn)
+        conn.close()
+        return df
+    except Exception:
+        return pd.DataFrame()
+
+# 2. SESSION STATE MANAGEMENT
 if "sidebar_state" not in st.session_state:
     st.session_state.sidebar_state = "expanded"
 
@@ -38,7 +86,7 @@ st.set_page_config(
     initial_sidebar_state=st.session_state.sidebar_state
 )
 
-# 2. HIGH-VISIBILITY CONTROL PANEL (SIDEBAR)
+# 3. HIGH-VISIBILITY CONTROL PANEL (SIDEBAR)
 st.sidebar.markdown("<h2 style='color: #38bdf8; text-align: center; border-bottom: 2px solid #38bdf8; padding-bottom: 8px;'>⚙️ CONTROL PANEL</h2>", unsafe_allow_html=True)
 
 LANGUAGES = {
@@ -79,7 +127,8 @@ with st.sidebar.expander("🛠️ Advanced Platform & API Settings", expanded=Fa
     st.session_state.voice_mode = st.checkbox("Enable Live Voice Speech-Output", value=st.session_state.voice_mode)
     ai_api_key = st.text_input("Live AI / Gemini API Key (Optional)", type="password", placeholder="Enter AI API key...")
     vt_api_key = st.text_input("VirusTotal API Key (Optional)", type="password", placeholder="Enter VT v3 key...")
-    webhook_url = st.text_input("SOC Webhook URL (Slack/Teams)", placeholder="https://webhook.site/...")
+    abuseipdb_api_key = st.text_input("AbuseIPDB API Key (Optional)", type="password", placeholder="Enter AbuseIPDB key...")
+    webhook_url = st.text_input("SOC / Feedback Webhook URL (Slack/Discord/Teams)", placeholder="https://webhook.site/...")
 
 st.sidebar.markdown("---")
 if st.sidebar.button("❌ Hide Control Panel"):
@@ -165,7 +214,7 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
-# CSS STYLING
+# CSS STYLING & MULTISELECT FIXES
 st.markdown(f"""
     <style>
     .stApp {{
@@ -405,31 +454,52 @@ def is_valid_public_ip(ip_str):
         return False
     return True
 
-def enrich_ip_data(ip_list, vt_key):
+# MULTI-FEED THREAT ENRICHMENT (IP-API + VIRUSTOTAL + ABUSEIPDB)
+def enrich_ip_data(ip_list, vt_key, abuse_key):
     results = []
+    geo_data = []
     valid_ips = [ip for ip in ip_list if is_valid_public_ip(ip)]
-    for ip in valid_ips[:3]:
+    
+    for ip in valid_ips[:5]:
+        clean_ip = ip.replace('[.]', '.')
         try:
-            res = requests.get(f"http://ip-api.com/json/{ip.replace('[.]', '.')}", timeout=2).json()
+            res = requests.get(f"http://ip-api.com/json/{clean_ip}", timeout=2.5).json()
             if res.get("status") == "success":
-                results.append(f"IP {ip}: {res.get('org', 'Unknown Org')} ({res.get('country', 'Unknown')}) - ISP: {res.get('isp')}")
+                lat = res.get("lat")
+                lon = res.get("lon")
+                country = res.get("country", "Unknown")
+                org = res.get("org", "Unknown Org")
+                results.append(f"IP {ip}: {org} ({country}) - ISP: {res.get('isp')}")
+                if lat and lon:
+                    geo_data.append({"IP": ip, "Country": country, "Org": org, "lat": lat, "lon": lon})
         except Exception:
             pass
-            
+
+        # AbuseIPDB API Integration
+        if abuse_key:
+            try:
+                headers = {'Accept': 'application/json', 'Key': abuse_key}
+                a_res = requests.get(f"https://api.abuseipdb.com/api/v2/check?ipAddress={clean_ip}", headers=headers, timeout=2.5)
+                if a_res.status_code == 200:
+                    abuse_score = a_res.json().get('data', {}).get('abuseConfidenceScore', 0)
+                    results.append(f"AbuseIPDB Score for {ip}: {abuse_score}% Confidence Malicious.")
+            except Exception:
+                pass
+
     if vt_key and valid_ips:
         try:
             headers = {"x-apikey": vt_key}
             sample_ip = valid_ips[0].replace('[.]', '.')
-            vt_res = requests.get(f"https://www.virustotal.com/api/v3/ip_addresses/{sample_ip}", headers=headers, timeout=2)
+            vt_res = requests.get(f"https://www.virustotal.com/api/v3/ip_addresses/{sample_ip}", headers=headers, timeout=2.5)
             if vt_res.status_code == 200:
                 stats = vt_res.json().get("data", {}).get("attributes", {}).get("last_analysis_stats", {})
-                results.append(f"VT Intelligence: {sample_ip} malicious score = {stats.get('malicious', 0)} detections.")
+                results.append(f"VirusTotal Intelligence: {sample_ip} malicious score = {stats.get('malicious', 0)} detections.")
         except Exception:
             pass
-            
-    return results
 
-def save_feedback_entry(name, role, rating, helpful_features, comments):
+    return results, geo_data
+
+def save_feedback_entry(name, role, rating, helpful_features, comments, webhook_target_url):
     entry = {
         "timestamp": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC'),
         "name": name if name else "Anonymous Tester",
@@ -439,6 +509,8 @@ def save_feedback_entry(name, role, rating, helpful_features, comments):
         "comments": comments
     }
     st.session_state.feedback_submissions.append(entry)
+    
+    # Save locally to JSON file
     try:
         log_file = "system_feedback_log.json"
         existing = []
@@ -450,6 +522,16 @@ def save_feedback_entry(name, role, rating, helpful_features, comments):
             json.dump(existing, f, indent=4)
     except Exception:
         pass
+
+    # Push instant Webhook Notification (Slack / Discord / Teams)
+    if webhook_target_url:
+        try:
+            payload = {
+                "text": f"📝 *New Smart Intelligence Feedback Received!*\n*Tester:* {entry['name']} ({role})\n*Rating:* {'⭐' * rating}\n*Comments:* {comments}"
+            }
+            requests.post(webhook_target_url, json=payload, timeout=3)
+        except Exception:
+            pass
 
 def generate_yara_rule(target_entity, iocs):
     rule_name = re.sub(r'[^a-zA-Z0-9_]', '_', target_entity or "Smart_Intelligence_Threat")
@@ -527,7 +609,7 @@ def answer_copilot_reasoning(user_prompt):
             "2. **Layer 2:** Ingest logs or threat reports.\n"
             "3. **Layer 3:** Review extraction & normalization metrics.\n"
             "4. **Layer 4:** Analyze AI threat correlation.\n"
-            "5. **Layer 5:** Access playbooks, export deliverables, and submit platform feedback!"
+            "5. **Layer 5:** Access playbooks, attack maps, historical archives, and submit feedback!"
         )
     elif any(k in prompt_lower for k in ["hello", "hi", "hey"]):
         return "Hello! I am your **Gemini CTI Copilot**. How can I assist you with your threat analysis today?"
@@ -891,7 +973,7 @@ if st.button(t["btn_process"], type="primary"):
 
         status_text.text("🔄 Layer 3: Running extraction & normalization engine...")
         iocs = extract_iocs(combined_raw_data)
-        live_enrichment = enrich_ip_data(iocs.get("IPv4", []), vt_api_key) if enable_live_enrichment else []
+        live_enrichment, geo_locations = enrich_ip_data(iocs.get("IPv4", []), vt_api_key, abuseipdb_api_key) if enable_live_enrichment else ([], [])
         time.sleep(0.3)
         progress_bar.progress(60)
 
@@ -922,6 +1004,9 @@ if st.button(t["btn_process"], type="primary"):
             target_entity, timeframe, intel_goal, risk_level, accuracy_score, sources_used, iocs
         )
         instructions_text = generate_instructions_text_report(target_entity, risk_level, iocs, ttps)
+
+        # Save scan to SQLite Database
+        save_scan_to_db(target_entity, timeframe, computed_risk_score, risk_level, total_iocs, len(ttps), combined_raw_data)
 
         time.sleep(0.2)
         progress_bar.progress(100)
@@ -1009,10 +1094,12 @@ if st.button(t["btn_process"], type="primary"):
         st.write("")
 
         # ADVANCED SOC TABBED NAVIGATION
-        soc_tab1, soc_tab2, soc_tab3 = st.tabs([
+        soc_tab1, soc_tab2, soc_tab3, soc_tab4, soc_tab5 = st.tabs([
             "🔍 IoC Inspector",
             "🛡️ Playbook Armory",
-            "📦 Deliverables & Exports"
+            "🗺️ Attack World Map",
+            "📦 Deliverables & Exports",
+            "📜 Threat Search Archive"
         ])
 
         with soc_tab1:
@@ -1073,6 +1160,20 @@ if st.button(t["btn_process"], type="primary"):
                 st.markdown(playbooks["siem"], unsafe_allow_html=True)
 
         with soc_tab3:
+            st.subheader("🗺️ Attacker Origin Geographical Map")
+            if geo_locations:
+                geo_df = pd.DataFrame(geo_locations)
+                fig = px.scatter_geo(
+                    geo_df, lat='lat', lon='lon', hover_name='IP', hover_data=['Country', 'Org'],
+                    title="Extracted Attacker IP Geographical Heat Map", projection="natural earth"
+                )
+                fig.update_traces(marker=dict(size=14, color='red', symbol='circle'))
+                fig.update_layout(template="plotly_dark", height=420)
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No public IP addresses with geographical coordinates were extracted in this scan.")
+
+        with soc_tab4:
             st.subheader("📦 Layer 5 Export Threat Intelligence Deliverables")
             dl_col1, dl_col2, dl_col3, dl_col4 = st.columns(4)
             
@@ -1109,6 +1210,24 @@ if st.button(t["btn_process"], type="primary"):
                 )
 
             st.divider()
+
+            # AUDIO BRIEFING GENERATOR
+            st.subheader("🎙️ Executive Incident Audio Briefing")
+            speech_summary = f"Executive threat briefing for target {target_entity or 'Global Corporate Infrastructure'}. Overall risk rating is {risk_level} with {total_iocs} total extracted indicators of compromise."
+            clean_audio = speech_summary.replace('"', '').replace('\n', ' ')
+            if st.button("🔊 Play Executive Briefing Audio"):
+                st.components.v1.html(f"""
+                    <script>
+                    if ('speechSynthesis' in window) {{
+                        window.speechSynthesis.cancel();
+                        var utterance = new SpeechSynthesisUtterance("{clean_audio}");
+                        utterance.rate = 0.95;
+                        window.speechSynthesis.speak(utterance);
+                    }}
+                    </script>
+                """, height=0)
+
+            st.divider()
             st.subheader("🚨 Automated Incident Response Webhook Dispatcher")
             if st.button("📡 Dispatch Threat Alert to SOC Webhook"):
                 if not webhook_url:
@@ -1128,9 +1247,7 @@ if st.button(t["btn_process"], type="primary"):
 
             st.divider()
             
-            # ==========================================
-            # IN-APP BETA TESTER FEEDBACK & EVALUATION FORM
-            # ==========================================
+            # IN-APP BETA TESTER FEEDBACK FORM
             st.subheader("📝 User Feedback & System Evaluation Form")
             st.caption("Help us improve the Smart Intelligence CTI Platform by sharing your testing feedback!")
 
@@ -1157,7 +1274,8 @@ if st.button(t["btn_process"], type="primary"):
                         "AI Threat Synthesis & Risk Scoring (Layer 4)",
                         "Containment Playbooks (PowerShell / Firewall / KQL)",
                         "YARA Rule & STIX 2.1 File Exports",
-                        "Plain-Language Instruction Guide Export"
+                        "Attacker Geographical World Map",
+                        "Executive Briefing Audio"
                     ],
                     default=["Automated Regex & IoC Extraction (Layer 3)", "Containment Playbooks (PowerShell / Firewall / KQL)"]
                 )
@@ -1170,7 +1288,7 @@ if st.button(t["btn_process"], type="primary"):
                 submit_feedback = st.form_submit_button("📩 Submit Feedback")
 
                 if submit_feedback:
-                    save_feedback_entry(tester_name, tester_role, rating, helpful_features, feedback_comments)
+                    save_feedback_entry(tester_name, tester_role, rating, helpful_features, feedback_comments, webhook_url)
                     st.success("🎉 Thank you for your feedback! Your evaluation response has been recorded.")
 
             # ANALYST REVIEW EXPANDER (ADMIN VIEW)
@@ -1180,6 +1298,14 @@ if st.button(t["btn_process"], type="primary"):
                     st.markdown(f"**Total Submissions:** `{len(st.session_state.feedback_submissions)}` | **Average Rating:** ⭐ `{avg_rating}/5`")
                     fb_df = pd.DataFrame(st.session_state.feedback_submissions)
                     st.dataframe(fb_df, use_container_width=True)
+
+        with soc_tab5:
+            st.subheader("📜 Historical Threat Scan Database Archive")
+            db_history_df = get_scan_history()
+            if not db_history_df.empty:
+                st.dataframe(db_history_df, use_container_width=True, height=350)
+            else:
+                st.info("No scans recorded in database yet.")
 
         st.markdown('</div>', unsafe_allow_html=True)
 
