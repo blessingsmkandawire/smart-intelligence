@@ -104,28 +104,19 @@ t = {
     "goal": "Intelligence Goal"
 }
 
-st.sidebar.markdown("<h2 style='text-align: center; border-bottom: 2px solid #38bdf8; padding-bottom: 8px;'>⚙️ CONTROL PANEL</h2>", unsafe_allow_html=True)
+# Theme-Adaptive Color Schemes
+if theme_choice_preset := "Dark SOC Theme": # evaluated below via theme_choice selectbox logic
+    pass
+
+# We define theme choice selector in sidebar
+st.sidebar.markdown("<div style='text-align: center; padding: 10px 0;'><h2 style='color: #38bdf8; margin:0; font-size: 1.4rem; text-shadow: 0 0 10px rgba(56,189,248,0.5);'>⚙️ CONTROL PANEL</h2></div>", unsafe_allow_html=True)
+st.sidebar.markdown("<div style='border-bottom: 2px solid #38bdf8; margin-bottom: 15px;'></div>", unsafe_allow_html=True)
 
 theme_choice = st.sidebar.selectbox(
     "🎨 UI Visual Mode", 
     ["Dark SOC Theme", "Cyberpunk Neon Mode", "Clean Light Mode"]
 )
 
-with st.sidebar.expander("🛠️ Advanced Platform & API Settings", expanded=False):
-    enable_live_enrichment = st.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
-    defang_iocs = st.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)")
-    st.session_state.voice_mode = st.checkbox("Enable Live Voice Speech-Output", value=st.session_state.voice_mode)
-    ai_api_key = st.text_input("Live AI / Gemini API Key (Optional)", type="password", placeholder="Enter AI API key...")
-    vt_api_key = st.text_input("VirusTotal API Key (Optional)", type="password", placeholder="Enter VT v3 key...")
-    abuseipdb_api_key = st.text_input("AbuseIPDB API Key (Optional)", type="password", placeholder="Enter AbuseIPDB key...")
-    webhook_url = st.text_input("SOC / Feedback Webhook URL (Slack/Discord/Teams)", placeholder="https://webhook.site/...")
-
-st.sidebar.markdown("---")
-if st.sidebar.button("❌ Hide Control Panel"):
-    st.session_state.sidebar_state = "collapsed"
-    st.rerun()
-
-# Theme-Adaptive Color Schemes
 if theme_choice == "Clean Light Mode":
     bg_color_solid = "#f1f5f9"
     bg_gradient = "linear-gradient(135deg, #e0f2fe 0%, #cbd5e1 100%)"
@@ -210,7 +201,7 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
-# HIGH-VISIBILITY DROPDOWN & GLOWING CSS
+# HIGH-VISIBILITY DROPDOWN & SCROLLABLE SIDEBAR CSS
 st.markdown(f"""
     <style>
     .stApp {{
@@ -221,12 +212,29 @@ st.markdown(f"""
     .block-container, section.main, .stMainBlockContainer, [data-testid="stMain"], [data-testid="stVerticalBlock"] {{
         background: transparent !important;
     }}
+    
+    /* SCROLLABLE & BEAUTIFIED SIDEBAR */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
         border-right: 2px solid {border_color} !important;
         box-shadow: 10px 0px 40px rgba(56, 189, 248, 0.3) !important;
         z-index: 999999 !important;
-        padding-top: 15px;
+        padding-top: 10px;
+        overflow-y: auto !important;
+        max-height: 100vh !important;
+    }}
+    
+    /* Custom Sidebar Scrollbar */
+    section[data-testid="stSidebar"]::-webkit-scrollbar {{
+        width: 6px;
+    }}
+    section[data-testid="stSidebar"]::-webkit-scrollbar-track {{
+        background: rgba(3, 7, 18, 0.5);
+    }}
+    section[data-testid="stSidebar"]::-webkit-scrollbar-thumb {{
+        background: {border_color};
+        border-radius: 4px;
+        box-shadow: 0 0 10px {border_color};
     }}
     
     /* CRITICAL DROPDOWN CONTRAST FIX */
@@ -393,6 +401,22 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
+
+# SIDEBAR CONTROLS (BEAUTIFIED & SCROLLABLE CONTAINER)
+with st.sidebar.expander("🛠️ Advanced Platform & API Settings", expanded=True):
+    st.markdown("<p style='font-size: 0.82rem; color: #94a3b8; margin-bottom: 12px;'>Configure threat intelligence lookups, AI keys, and webhooks.</p>", unsafe_allow_html=True)
+    enable_live_enrichment = st.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
+    defang_iocs = st.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)")
+    st.session_state.voice_mode = st.checkbox("Enable Live Voice Speech-Output", value=st.session_state.voice_mode)
+    ai_api_key = st.text_input("Live AI / Gemini API Key (Optional)", type="password", placeholder="Enter AI API key...")
+    vt_api_key = st.text_input("VirusTotal API Key (Optional)", type="password", placeholder="Enter VT v3 key...")
+    abuseipdb_api_key = st.text_input("AbuseIPDB API Key (Optional)", type="password", placeholder="Enter AbuseIPDB key...")
+    webhook_url = st.text_input("SOC / Feedback Webhook URL (Slack/Discord/Teams)", placeholder="https://webhook.site/...")
+
+st.sidebar.markdown("<div style='margin: 15px 0;'></div>", unsafe_allow_html=True)
+if st.sidebar.button("❌ Hide Control Panel"):
+    st.session_state.sidebar_state = "collapsed"
+    st.rerun()
 
 # Helper Utilities & Validations
 def defang(text):
