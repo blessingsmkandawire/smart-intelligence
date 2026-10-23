@@ -720,52 +720,54 @@ def generate_stix_bundle(target_entity, iocs):
             })
     return {"type": "bundle", "id": bundle_id, "objects": objects}
 
-# 4. LIVE ANIMATED ENHANCED CYBER SHIELD BANNER COMPONENT
+# 4. FULL-WIDTH ANIMATED HIGH-TECH CYBER SHIELD BANNER COMPONENT
 st.components.v1.html("""
-    <div style="position: relative; width: 100%; height: 280px; background: radial-gradient(circle at 50% 50%, #0a2552 0%, #020612 90%); border: 2px solid #38bdf8; border-radius: 20px; overflow: hidden; box-shadow: 0 0 45px rgba(56, 189, 248, 0.55), inset 0 0 30px rgba(56, 189, 248, 0.3);">
+    <div style="position: relative; width: 100%; height: 300px; background: radial-gradient(circle at 50% 50%, #0d2959 0%, #020612 95%); border: 2px solid #38bdf8; border-radius: 20px; overflow: hidden; box-shadow: 0 0 50px rgba(56, 189, 248, 0.6), inset 0 0 35px rgba(56, 189, 248, 0.35); margin: 0 auto;">
         
-        <!-- Background Mesh Grid -->
-        <div style="position: absolute; top:0; left:0; width:100%; height:100%; background-image: linear-gradient(rgba(56, 189, 248, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, 0.12) 1px, transparent 1px); background-size: 24px 24px; z-index:1;"></div>
+        <!-- Background Animated Grid Mesh -->
+        <div style="position: absolute; top:0; left:0; width:100%; height:100%; background-image: linear-gradient(rgba(56, 189, 248, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, 0.12) 1px, transparent 1px); background-size: 25px 25px; z-index:1;"></div>
 
-        <!-- Four Glowing Corner HUD Brackets -->
-        <div style="position: absolute; top: 12px; left: 16px; color: #00ffcc; font-size: 1.8rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 12px #00ffcc; z-index: 6;">⌜</div>
-        <div style="position: absolute; top: 12px; right: 16px; color: #00ffcc; font-size: 1.8rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 12px #00ffcc; z-index: 6;">⌝</div>
-        <div style="position: absolute; bottom: 12px; left: 16px; color: #00ffcc; font-size: 1.8rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 12px #00ffcc; z-index: 6;">⌞</div>
-        <div style="position: absolute; bottom: 12px; right: 16px; color: #00ffcc; font-size: 1.8rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 12px #00ffcc; z-index: 6;">⌟</div>
+        <!-- Four Neon Corner Brackets -->
+        <div style="position: absolute; top: 10px; left: 16px; color: #00ffcc; font-size: 2rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 15px #00ffcc; z-index: 6;">⌜</div>
+        <div style="position: absolute; top: 10px; right: 16px; color: #00ffcc; font-size: 2rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 15px #00ffcc; z-index: 6;">⌝</div>
+        <div style="position: absolute; bottom: 10px; left: 16px; color: #00ffcc; font-size: 2rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 15px #00ffcc; z-index: 6;">⌞</div>
+        <div style="position: absolute; bottom: 10px; right: 16px; color: #00ffcc; font-size: 2rem; font-family: monospace; font-weight: 900; text-shadow: 0 0 15px #00ffcc; z-index: 6;">⌟</div>
 
-        <!-- Left Multi-Layer HUD Radar Dial -->
-        <div style="position: absolute; left: 40px; top: 50%; transform: translateY(-50%); width: 150px; height: 150px; border: 2px dashed #38bdf8; border-radius: 50%; animation: spinRight 14s linear infinite; opacity: 0.7; z-index:2;"></div>
-        <div style="position: absolute; left: 55px; top: 50%; transform: translateY(-50%); width: 120px; height: 120px; border: 2px solid #00ffcc; border-radius: 50%; border-top-color: transparent; border-bottom-color: transparent; animation: spinLeft 7s linear infinite; opacity: 0.85; z-index:2;"></div>
-        <div style="position: absolute; left: 95px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 1.5px solid #ff0055; border-radius: 50%; animation: pulseGlow 1.5s infinite alternate; z-index:2;"></div>
-
-        <!-- Right Multi-Layer HUD Radar Dial -->
-        <div style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); width: 150px; height: 150px; border: 2px dashed #38bdf8; border-radius: 50%; animation: spinLeft 14s linear infinite; opacity: 0.7; z-index:2;"></div>
-        <div style="position: absolute; right: 55px; top: 50%; transform: translateY(-50%); width: 120px; height: 120px; border: 2px solid #00ffcc; border-radius: 50%; border-left-color: transparent; border-right-color: transparent; animation: spinRight 7s linear infinite; opacity: 0.85; z-index:2;"></div>
-        <div style="position: absolute; right: 95px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 1.5px solid #ff0055; border-radius: 50%; animation: pulseGlow 1.5s infinite alternate; z-index:2;"></div>
-
-        <!-- Floating Live Data Stream Indicators (Left & Right) -->
-        <div style="position: absolute; left: 210px; top: 35px; color: #38bdf8; font-family: monospace; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.12em; text-shadow: 0 0 8px #38bdf8; z-index:4;">
-            ⚡ CTI-CORE: ONLINE <span style="color:#00ffcc;">>>></span>
-        </div>
-        <div style="position: absolute; right: 210px; top: 35px; color: #00ffcc; font-family: monospace; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.12em; text-shadow: 0 0 8px #00ffcc; z-index:4;">
-            <span style="color:#38bdf8;"><<<</span> 🔒 ENCRYPTED PIPELINE
-        </div>
-        <div style="position: absolute; left: 210px; bottom: 35px; color: #ff0055; font-family: monospace; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.12em; text-shadow: 0 0 8px #ff0055; z-index:4;">
-            📡 LIVE TELEMETRY FEED
-        </div>
-        <div style="position: absolute; right: 210px; bottom: 35px; color: #38bdf8; font-family: monospace; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.12em; text-shadow: 0 0 8px #38bdf8; z-index:4;">
-            🛡️ LAYER 1-5 ACTIVE
+        <!-- TOP TECH BANNER STRIP -->
+        <div style="position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 25px; align-items: center; z-index: 6; width: 85%; justify-content: space-between; font-family: monospace; font-size: 0.8rem; font-weight: 800;">
+            <div style="color: #38bdf8; text-shadow: 0 0 10px #38bdf8;">⚡ CTI-CORE: ONLINE</div>
+            <div style="color: #00ffcc; text-shadow: 0 0 10px #00ffcc; letter-spacing: 0.1em;">[ SECURE ENDPOINT PIPELINE ACTIVE ]</div>
+            <div style="color: #ff0055; text-shadow: 0 0 10px #ff0055;">🔒 AES-256 ENCRYPTED</div>
         </div>
 
-        <!-- Enlarged Central Glowing Cyber Shield with Crosshairs -->
-        <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5;">
+        <!-- LEFT SIDE DIAGNOSTIC MODULE (Oscilloscope Wave + Metric Gauges) -->
+        <div style="position: absolute; left: 35px; top: 55%; transform: translateY(-50%); width: 220px; z-index: 4; font-family: monospace;">
+            <div style="color: #00ffcc; font-size: 0.75rem; font-weight: 800; margin-bottom: 6px; text-shadow: 0 0 8px #00ffcc;">📊 TELEMETRY WAVEFORM</div>
+            <!-- Animated SVG Waveform -->
+            <svg width="200" height="50" style="background: rgba(3, 10, 26, 0.7); border: 1px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 12px rgba(56,189,248,0.3);">
+                <path d="M0 25 Q25 5 50 25 T100 25 T150 25 T200 25" fill="none" stroke="#00ffcc" stroke-width="2">
+                    <animate attributeName="d" dur="2s" repeatCount="indefinite" values="M0 25 Q25 5 50 25 T100 25 T150 25 T200 25; M0 25 Q25 45 50 25 T100 25 T150 25 T200 25; M0 25 Q25 5 50 25 T100 25 T150 25 T200 25"/>
+                </path>
+            </svg>
+            <div style="margin-top: 8px; color: #38bdf8; font-size: 0.72rem; line-height: 1.4;">
+                <div>SHIELD HEALTH : <span style="color:#00ffcc;">98.4%</span></div>
+                <div>PACKET LOSS   : <span style="color:#00ffcc;">0.00%</span></div>
+                <div>FIREWALL LOAD : <span style="color:#ff0055;">12.1%</span></div>
+            </div>
+        </div>
+
+        <!-- LEFT RADAR DIAL -->
+        <div style="position: absolute; left: 180px; top: 50%; transform: translateY(-50%); width: 140px; height: 140px; border: 2px dashed #38bdf8; border-radius: 50%; animation: spinRight 12s linear infinite; opacity: 0.6; z-index:2;"></div>
+
+        <!-- CENTER ENLARGED GLOWING CYBER SHIELD WITH TARGET CROSSHAIRS -->
+        <div style="position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); z-index: 5;">
             
             <!-- Outer Target Reticle Ring -->
-            <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 190px; height: 190px; border: 1.5px solid rgba(0, 255, 204, 0.5); border-radius: 50%; border-style: dotted; animation: spinRight 20s linear infinite;"></div>
+            <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 210px; height: 210px; border: 1.5px solid rgba(0, 255, 204, 0.6); border-radius: 50%; border-style: dotted; animation: spinRight 18s linear infinite;"></div>
             
-            <svg width="165" height="185" viewBox="0 0 100 120" style="filter: drop-shadow(0 0 25px #38bdf8) drop-shadow(0 0 45px #00ffcc) drop-shadow(0 0 60px #0284c7);">
+            <svg width="175" height="195" viewBox="0 0 100 120" style="filter: drop-shadow(0 0 25px #38bdf8) drop-shadow(0 0 45px #00ffcc) drop-shadow(0 0 70px #0284c7);">
                 <!-- Outer Shield Path -->
-                <path d="M50 5 L90 20 V60 C90 90 50 115 50 115 C50 115 10 90 10 60 V20 Z" fill="rgba(6, 25, 56, 0.85)" stroke="#38bdf8" stroke-width="3.5"/>
+                <path d="M50 5 L90 20 V60 C90 90 50 115 50 115 C50 115 10 90 10 60 V20 Z" fill="rgba(6, 25, 56, 0.88)" stroke="#38bdf8" stroke-width="3.5"/>
                 <!-- Inner Shield Path -->
                 <path d="M50 14 L82 26 V58 C82 82 50 102 50 102 C50 102 18 82 18 58 V26 Z" fill="none" stroke="#00ffcc" stroke-width="2" stroke-dasharray="4 2"/>
                 <!-- Core Glowing Symbol -->
@@ -774,21 +776,38 @@ st.components.v1.html("""
             </svg>
             
             <!-- Laser Radar Scanner Bar -->
-            <div style="position: absolute; top: -10px; left: -15px; width: 195px; height: 5px; background: linear-gradient(90deg, transparent, #00ffcc, #38bdf8, #ff0055, transparent); box-shadow: 0 0 20px #00ffcc; animation: scanVertical 2.2s ease-in-out infinite;"></div>
+            <div style="position: absolute; top: -10px; left: -20px; width: 215px; height: 5px; background: linear-gradient(90deg, transparent, #00ffcc, #38bdf8, #ff0055, transparent); box-shadow: 0 0 22px #00ffcc; animation: scanVertical 2.2s ease-in-out infinite;"></div>
         </div>
 
-        <!-- Orbiting Particle Ring 1 -->
-        <div style="position: absolute; left: 50%; top: 50%; width: 280px; height: 100px; margin-left: -140px; margin-top: -50px; border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 50%; transform: rotateX(72deg) rotateZ(35deg); animation: spinRight 7s linear infinite; z-index:3;">
-            <div style="width: 12px; height: 12px; background: #00ffcc; border-radius: 50%; box-shadow: 0 0 16px #00ffcc, 0 0 25px #00ffcc;"></div>
+        <!-- Orbiting 3D Ring 1 -->
+        <div style="position: absolute; left: 50%; top: 52%; width: 320px; height: 110px; margin-left: -160px; margin-top: -55px; border: 1px solid rgba(56, 189, 248, 0.55); border-radius: 50%; transform: rotateX(72deg) rotateZ(35deg); animation: spinRight 7s linear infinite; z-index:3;">
+            <div style="width: 14px; height: 14px; background: #00ffcc; border-radius: 50%; box-shadow: 0 0 18px #00ffcc, 0 0 28px #00ffcc;"></div>
         </div>
 
-        <!-- Orbiting Particle Ring 2 -->
-        <div style="position: absolute; left: 50%; top: 50%; width: 280px; height: 100px; margin-left: -140px; margin-top: -50px; border: 1px solid rgba(0, 255, 204, 0.5); border-radius: 50%; transform: rotateX(72deg) rotateZ(-35deg); animation: spinLeft 5s linear infinite; z-index:3;">
-            <div style="width: 12px; height: 12px; background: #ff0055; border-radius: 50%; box-shadow: 0 0 16px #ff0055, 0 0 25px #ff0055;"></div>
+        <!-- Orbiting 3D Ring 2 -->
+        <div style="position: absolute; left: 50%; top: 52%; width: 320px; height: 110px; margin-left: -160px; margin-top: -55px; border: 1px solid rgba(255, 0, 85, 0.55); border-radius: 50%; transform: rotateX(72deg) rotateZ(-35deg); animation: spinLeft 5s linear infinite; z-index:3;">
+            <div style="width: 14px; height: 14px; background: #ff0055; border-radius: 50%; box-shadow: 0 0 18px #ff0055, 0 0 28px #ff0055;"></div>
         </div>
 
-        <!-- Central Live Status Overlay Badge -->
-        <div style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(2, 6, 18, 0.85); border: 1px solid #00ffcc; border-radius: 20px; padding: 4px 18px; color: #00ffcc; font-family: monospace; font-size: 0.88rem; font-weight: 800; letter-spacing: 0.15em; text-shadow: 0 0 12px #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); z-index: 6;">
+        <!-- RIGHT RADAR DIAL -->
+        <div style="position: absolute; right: 180px; top: 50%; transform: translateY(-50%); width: 140px; height: 140px; border: 2px dashed #38bdf8; border-radius: 50%; animation: spinLeft 12s linear infinite; opacity: 0.6; z-index:2;"></div>
+
+        <!-- RIGHT SIDE DIAGNOSTIC MODULE (Binary Stream + Target Scope) -->
+        <div style="position: absolute; right: 35px; top: 55%; transform: translateY(-50%); width: 210px; z-index: 4; font-family: monospace; text-align: right;">
+            <div style="color: #ff0055; font-size: 0.75rem; font-weight: 800; margin-bottom: 6px; text-shadow: 0 0 8px #ff0055;">📡 LIVE BINARY STREAM</div>
+            <div style="background: rgba(3, 10, 26, 0.7); border: 1px solid #ff0055; border-radius: 8px; padding: 6px; color: #00ffcc; font-size: 0.68rem; box-shadow: 0 0 12px rgba(255,0,85,0.3); line-height: 1.3;">
+                01100101 01110011<br>
+                10100110 11001011<br>
+                00110101 01011110
+            </div>
+            <div style="margin-top: 8px; color: #38bdf8; font-size: 0.72rem; line-height: 1.4;">
+                <div>TARGETS : <span style="color:#00ffcc;">0 DETECTED</span></div>
+                <div>SCAN SPEED : <span style="color:#00ffcc;">10 Gbps</span></div>
+            </div>
+        </div>
+
+        <!-- CENTRAL BOTTOM STATUS BADGE -->
+        <div style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(2, 6, 18, 0.9); border: 1px solid #00ffcc; border-radius: 20px; padding: 5px 22px; color: #00ffcc; font-family: monospace; font-size: 0.88rem; font-weight: 800; letter-spacing: 0.15em; text-shadow: 0 0 12px #00ffcc; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); z-index: 6;">
             [ SYSTEM SHIELD ACTIVE — REAL-TIME THREAT MONITORING ]
         </div>
     </div>
@@ -813,7 +832,7 @@ st.components.v1.html("""
         100% { transform: scale(1.2); filter: drop-shadow(0 0 25px #00ffcc); }
     }
     </style>
-""", height=290)
+""", height=310)
 
 col_hdr1, col_hdr2 = st.columns([3, 1])
 with col_hdr1:
