@@ -5,7 +5,6 @@ import html
 from datetime import datetime
 import pandas as pd
 import altair as alt
-import plotly.express as px
 import requests
 import time
 import os
@@ -217,7 +216,7 @@ st.components.v1.html(f"""
     </script>
 """, height=0)
 
-# PREMIUM REFINED CSS STYLING
+# CSS STYLING
 st.markdown(f"""
     <style>
     .stApp {{
@@ -604,6 +603,7 @@ def generate_instructions_text_report(target_entity, risk_level, iocs, ttps):
 
     return "\n".join(report)
 
+# COPILOT REASONING ASSISTANT
 def answer_copilot_reasoning(user_prompt):
     prompt_lower = user_prompt.lower()
     if any(k in prompt_lower for k in ["how", "use", "guide", "start", "begin", "steps", "workflow"]):
