@@ -7,32 +7,45 @@ import pandas as pd
 import altair as alt
 import requests
 import time
-import os
 import sqlite3
 
-# 1. DATABASE SETUP FOR THREAT HISTORY ARCHIVE
+# 1. DATABASE & CLOUD-SAFE CONFIGURATION SETUP
 DB_FILE = "threat_intelligence.db"
 
 def init_db():
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS threat_scans (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT,
-            target TEXT,
-            timeframe TEXT,
-            risk_score INTEGER,
-            risk_level TEXT,
-            ioc_count INTEGER,
-            ttp_count INTEGER,
-            summary TEXT
-        )
-    ''')
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS threat_scans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT,
+                target TEXT,
+                timeframe TEXT,
+                risk_score INTEGER,
+                risk_level TEXT,
+                ioc_count INTEGER,
+                ttp_count INTEGER,
+                summary TEXT
+            )
+        ''')
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass  # Gracefully bypass if filesystem restrictions apply on cloud
 
 init_db()
+
+# Safe Secret / Config Loader for Cloud Environments
+def get_cloud_secret(key_name, default_val=""):
+    # 1. Check Streamlit Secrets first (ideal for online deployment)
+    try:
+        if key_name in st.secrets:
+            return st.secrets[key_name]
+    except Exception:
+        pass
+    # 2. Fall back to Session State
+    return st.session_state.get(key_name, default_val)
 
 def save_scan_to_db(target, timeframe, risk_score, risk_level, ioc_count, ttp_count, summary):
     try:
@@ -44,8 +57,8 @@ def save_scan_to_db(target, timeframe, risk_score, risk_level, ioc_count, ttp_co
         ''', (datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC'), target or "Global", timeframe, risk_score, risk_level, ioc_count, ttp_count, summary[:300]))
         conn.commit()
         conn.close()
-    except Exception as e:
-        st.warning(f"Database write warning: {e}")
+    except Exception:
+        pass
 
 def get_scan_history():
     try:
@@ -62,9 +75,6 @@ if "sidebar_state" not in st.session_state:
 
 if "ai_analysis_result" not in st.session_state:
     st.session_state.ai_analysis_result = None
-
-if "computed_risk_score" not in st.session_state:
-    st.session_state.computed_risk_score = 0
 
 if "voice_mode" not in st.session_state:
     st.session_state.voice_mode = False
@@ -89,7 +99,6 @@ st.set_page_config(
 )
 
 # 3. THEME SELECTION & DYNAMIC VARIABLES
-selected_lang = "English"
 t = {
     "welcome": "Smart Intelligence CTI",
     "tagline": "Enterprise Automated Threat Intelligence, Correlation, and Mitigation Platform",
@@ -104,11 +113,7 @@ t = {
     "goal": "Intelligence Goal"
 }
 
-# Theme-Adaptive Color Schemes
-if theme_choice_preset := "Dark SOC Theme": # evaluated below via theme_choice selectbox logic
-    pass
-
-# We define theme choice selector in sidebar
+# SIDEBAR CONTROL PANEL
 st.sidebar.markdown("<div style='text-align: center; padding: 10px 0;'><h2 style='color: #38bdf8; margin:0; font-size: 1.4rem; text-shadow: 0 0 10px rgba(56,189,248,0.5);'>⚙️ CONTROL PANEL</h2></div>", unsafe_allow_html=True)
 st.sidebar.markdown("<div style='border-bottom: 2px solid #38bdf8; margin-bottom: 15px;'></div>", unsafe_allow_html=True)
 
@@ -123,7 +128,6 @@ if theme_choice == "Clean Light Mode":
     card_bg = "rgba(255, 255, 255, 0.95)"
     text_color = "#0f172a"
     sidebar_bg = "#ffffff"
-    sidebar_text = "#0f172a"
     accent_color = "#0284c7"
     border_color = "#0284c7"
     glow_shadow = "0 0 20px rgba(2, 132, 199, 0.25)"
@@ -138,7 +142,6 @@ elif theme_choice == "Cyberpunk Neon Mode":
     card_bg = "rgba(18, 15, 36, 0.85)"
     text_color = "#00ffcc"
     sidebar_bg = "linear-gradient(180deg, #060b18 0%, #030611 100%)"
-    sidebar_text = "#00ffcc"
     accent_color = "#ff0055"
     border_color = "#00ffcc"
     glow_shadow = "0 0 25px rgba(0, 255, 204, 0.45), 0 0 45px rgba(255, 0, 85, 0.25)"
@@ -153,7 +156,6 @@ else:  # Dark SOC Theme
     card_bg = "rgba(10, 18, 36, 0.88)"
     text_color = "#f8fafc"
     sidebar_bg = "linear-gradient(180deg, #060b18 0%, #030611 100%)"
-    sidebar_text = "#38bdf8"
     accent_color = "#38bdf8"
     border_color = "#38bdf8"
     glow_shadow = "0 0 22px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.15)"
@@ -213,7 +215,6 @@ st.markdown(f"""
         background: transparent !important;
     }}
     
-    /* SCROLLABLE & BEAUTIFIED SIDEBAR */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
         border-right: 2px solid {border_color} !important;
@@ -224,7 +225,6 @@ st.markdown(f"""
         max-height: 100vh !important;
     }}
     
-    /* Custom Sidebar Scrollbar */
     section[data-testid="stSidebar"]::-webkit-scrollbar {{
         width: 6px;
     }}
@@ -237,7 +237,6 @@ st.markdown(f"""
         box-shadow: 0 0 10px {border_color};
     }}
     
-    /* CRITICAL DROPDOWN CONTRAST FIX */
     ul[role="listbox"], 
     div[role="listbox"], 
     div[data-baseweb="popover"], 
@@ -273,7 +272,6 @@ st.markdown(f"""
         font-weight: 800 !important;
     }}
 
-    /* GLOBAL TEXT & INPUT STYLES */
     html, body, p, span, div, label, .stMarkdown, .stText {{
         color: {text_color} !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -402,16 +400,18 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# SIDEBAR CONTROLS (BEAUTIFIED & SCROLLABLE CONTAINER)
+# CLOUD-SAFE SECRETS & SETTINGS PANEL
 with st.sidebar.expander("🛠️ Advanced Platform & API Settings", expanded=True):
-    st.markdown("<p style='font-size: 0.82rem; color: #94a3b8; margin-bottom: 12px;'>Configure threat intelligence lookups, AI keys, and webhooks.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 0.82rem; color: #94a3b8; margin-bottom: 10px;'>Loaded from cloud secrets or session state.</p>", unsafe_allow_html=True)
+    
     enable_live_enrichment = st.checkbox("Enable Live Threat Feed Lookups (IP/ASN)", value=True)
-    defang_iocs = st.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)")
+    defang_iocs = st.checkbox("Defang IoCs for Safety (e.g. 1.1.1[.]1)", value=False)
     st.session_state.voice_mode = st.checkbox("Enable Live Voice Speech-Output", value=st.session_state.voice_mode)
-    ai_api_key = st.text_input("Live AI / Gemini API Key (Optional)", type="password", placeholder="Enter AI API key...")
-    vt_api_key = st.text_input("VirusTotal API Key (Optional)", type="password", placeholder="Enter VT v3 key...")
-    abuseipdb_api_key = st.text_input("AbuseIPDB API Key (Optional)", type="password", placeholder="Enter AbuseIPDB key...")
-    webhook_url = st.text_input("SOC / Feedback Webhook URL (Slack/Discord/Teams)", placeholder="https://webhook.site/...")
+    
+    ai_api_key = st.text_input("Live AI / Gemini API Key", value=get_cloud_secret("ai_api_key", ""), type="password", placeholder="Enter AI API key...")
+    vt_api_key = st.text_input("VirusTotal API Key", value=get_cloud_secret("vt_api_key", ""), type="password", placeholder="Enter VT v3 key...")
+    abuseipdb_api_key = st.text_input("AbuseIPDB API Key", value=get_cloud_secret("abuseipdb_api_key", ""), type="password", placeholder="Enter AbuseIPDB key...")
+    webhook_url = st.text_input("SOC Webhook URL", value=get_cloud_secret("webhook_url", ""), placeholder="https://webhook.site/...")
 
 st.sidebar.markdown("<div style='margin: 15px 0;'></div>", unsafe_allow_html=True)
 if st.sidebar.button("❌ Hide Control Panel"):
@@ -505,18 +505,6 @@ def save_feedback_entry(name, role, rating, helpful_features, comments, webhook_
         "comments": comments
     }
     st.session_state.feedback_submissions.append(entry)
-    
-    try:
-        log_file = "system_feedback_log.json"
-        existing = []
-        if os.path.exists(log_file):
-            with open(log_file, "r") as f:
-                existing = json.load(f)
-        existing.append(entry)
-        with open(log_file, "w") as f:
-            json.dump(existing, f, indent=4)
-    except Exception:
-        pass
 
     if webhook_target_url:
         try:
@@ -1258,7 +1246,6 @@ if st.button(t["btn_process"], type="primary"):
 
             st.divider()
 
-            # NON-CLOSING HTML/JS AUDIO BRIEFING BUTTON
             st.subheader("🎙️ Executive Incident Audio Briefing")
             speech_summary = f"Executive threat briefing for target {target_entity or 'Global Corporate Infrastructure'}. Overall risk rating is {risk_level} with {total_iocs} total extracted indicators of compromise."
             clean_audio_json = json.dumps(speech_summary)
@@ -1304,7 +1291,6 @@ if st.button(t["btn_process"], type="primary"):
 
             st.divider()
             
-            # IN-APP BETA TESTER FEEDBACK FORM
             st.subheader("📝 User Feedback & System Evaluation Form")
             st.caption("Help us improve the Smart Intelligence CTI Platform by sharing your testing feedback!")
 
